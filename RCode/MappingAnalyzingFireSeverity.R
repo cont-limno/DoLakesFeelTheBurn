@@ -1,6 +1,6 @@
 ######################## Mapping, analyzing watershed fire severity #######################################
 # Date: 4-11-18
-# updated: 7-3-18
+# updated: 7-23-18
 # Author: Ian McCullough, immccull@gmail.com
 ###########################################################################################################
 
@@ -10,6 +10,9 @@ library(raster)
 library(Hmisc)
 library(rgeos)
 library(tmap)
+library(mblm)
+library(Kendall)
+library(rgdal)
 
 # library(LAGOSNE)
 # library(rgdal)
@@ -35,6 +38,7 @@ ecoregions <- spTransform(ecoregions, CRSobj = crs(states_shp))
 # read in burned lagoslakeids
 burned_watersheds <- read.csv("ExportedData/Burned1500mBuffs.csv")[,2] #reads 2nd column (lagoslakeid)
 csv_list <- list.files("ExportedData/lake_fire_history_severity/buffer1500m", pattern='.csv', full.names=T)
+area_burned_list <- list.files("ExportedData/lake_fire_history/buffer1500m", pattern='.csv', full.names=T)
 
 #### define constants ####
 first_year = 1984
@@ -100,6 +104,15 @@ for (i in 1:length(csv_list)){
 colnames(LS_df) <- burned_watersheds
 rownames(LS_df) <- year_seq
 
+# get total area burned (wildfire) fire histories
+WFarea_df <- data.frame(matrix(NA, ncol = length(csv_list), nrow = length(year_seq)))
+for (i in 1:length(area_burned_list)){
+  fire_hist <- read.csv(area_burned_list[i])
+  WFarea_df[,i] <- fire_hist$wildfire_pct
+  fire_hist <- NULL
+}
+colnames(WFarea_df) <- burned_watersheds
+rownames(WFarea_df) <- year_seq
 
 ######################## Regional analysis #############################
 # US Level 3 ecoregions
@@ -282,10 +295,10 @@ PropLakes_LS_df$Year <- year_seq # create year column
 states_buffer <- gBuffer(states_shp, byid=F, width=200000) #byID=F: acts as dissolving states into single polygon rather than acting on individual states
 
 # first create point grid, which then gets converted to hexagons
-hex_points <- spsample(states_buffer, type='hexagonal', cellsize=300000, nsig=2, offset=c(0.5,0.5))
+hex_points <- spsample(states_buffer, type='hexagonal', cellsize=250000, nsig=2, offset=c(0.5,0.5)) #orig set at 300000
 hex_points #view how many points were made
 
-hex_grid <- HexPoints2SpatialPolygons(hex_points, dx=300000) #create hexagon polygons from points
+hex_grid <- HexPoints2SpatialPolygons(hex_points, dx=250000) #create hexagon polygons from points
 
 dev.off()
 plot(states_shp)
@@ -428,7 +441,7 @@ for (i in 1:length(hexagon_names)){
   hexagon_given <- hexagon_names[i]
   nLakes <- subset(lake_countz_hex, ID == hexagon_given)[,2]
   hexagon_HS_given <- subset(hexagon_HS_df, select=hexagon_given)
-  PropLakes <- hexagon_HS_given[,1]/nLakes
+  PropLakes <- hexagon_HS_given[,1]/as.numeric(nLakes) #need as.numeric to get plain number from tibble
   PropLakes_HS_hex_df[,i] <- PropLakes
 }
 colnames(PropLakes_HS_hex_df) <- hexagon_names
@@ -439,7 +452,7 @@ for (i in 1:length(hexagon_names)){
   hexagon_given <- hexagon_names[i]
   nLakes <- subset(lake_countz_hex, ID == hexagon_given)[,2]
   hexagon_MS_given <- subset(hexagon_MS_df, select=hexagon_given)
-  PropLakes <- hexagon_MS_given[,1]/nLakes
+  PropLakes <- hexagon_MS_given[,1]/as.numeric(nLakes)
   PropLakes_MS_hex_df[,i] <- PropLakes
 }
 colnames(PropLakes_MS_hex_df) <- hexagon_names
@@ -450,11 +463,99 @@ for (i in 1:length(hexagon_names)){
   hexagon_given <- hexagon_names[i]
   nLakes <- subset(lake_countz_hex, ID == hexagon_given)[,2]
   hexagon_LS_given <- subset(hexagon_LS_df, select=hexagon_given)
-  PropLakes <- hexagon_LS_given[,1]/nLakes
+  PropLakes <- hexagon_LS_given[,1]/as.numeric(nLakes)
   PropLakes_LS_hex_df[,i] <- PropLakes
 }
 colnames(PropLakes_LS_hex_df) <- hexagon_names
 PropLakes_LS_hex_df$Year <- year_seq # create year column
+
+# Use Theil Sen slope for detecting hexagons with significant increases in proportion of lakes experiencing
+# high severity fire
+x=PropLakes_HS_hex_df$Year
+theilSenProp_df <- data.frame(matrix(NA, nrow = length(hexagon_names), ncol = 3))
+for (i in 1:length(hexagon_names)){
+  y=PropLakes_HS_hex_df[,i]
+  mumble_model <- mblm(y ~ x)
+  theilSenProp_df[i,1] <- mumble_model$coefficients[1] #intercept
+  theilSenProp_df[i,2] <- mumble_model$coefficients[2] #slope
+  MK <- MannKendall(y)
+  theilSenProp_df[i,3] <- MK$sl #pvalue
+  mumble_model <- NULL
+  MK <- NULL
+  y <- NULL
+}
+theilSenProp_df$ID <- hexagon_names
+colnames(theilSenProp_df)[1:3] <- c('Intercept','Slope','pval')
+# if slope is 0, then have no fires, so make NA
+theilSenProp_df$pval <- ifelse(theilSenProp_df$Slope==0, NA, theilSenProp_df$pval)
+
+# join theil sen data frame to hexagon shapefile for mapping
+theilSenProp_shp <- merge(hex_grid, theilSenProp_df, by='ID')
+
+tm_shape(theilSenProp_shp)+
+  tm_fill('pval', style='fixed', title='Pval',
+          breaks=c(0,0.00001,0.00002,0.00003,0.0004,0.0005, Inf), textNA = 'NA', colorNA = 'gray')+
+  tm_borders()
+
+# export to map in ArcGIS
+#writeOGR(theilSenProp_shp, dsn='C:/Ian_GIS/FeelTheBurn/hexagons', layer='theilSenPropHS_shp2', 
+#         overwrite_layer = T, driver='ESRI Shapefile')
+
+
+###### Changing wildfire % burned in lake watersheds? (by hexagon) #######
+hexagon_WFarea_df <- data.frame(matrix(NA, ncol = length(hexagon_names), nrow = length(year_seq)))
+colnames(hexagon_WFarea_df) <- hexagon_names
+rownames(hexagon_WFarea_df) <- year_seq
+for (i in 1:length(hexagon_names)){
+  hex_test <- subset(hex_lagoslakeid, ID == hexagon_names[i])
+  hex_test_lakes <- unique(hex_test$lagoslakeid)
+  WF_df_test <- as.data.frame(t(WFarea_df))
+  WF_df_test$lagoslakeid <- rownames(WF_df_test)
+  WF_df_test <- subset(WF_df_test, lagoslakeid %in% hex_test_lakes)
+  # building in conditional statement for instances when no HS fire occurs in given hexagon
+  if (nrow(WF_df_test) > 0) {
+    hex_WF_total <- colSums(WF_df_test[,1:length(year_seq)], na.rm=T)
+  }
+  else {
+    hex_WF_total <- rep(0, length(year_seq))
+  }
+  hexagon_WFarea_df[,i] <- hex_WF_total 
+  hex_test <- NULL
+  WF_df_test <- NULL
+  hex_WF_total <- NULL
+}
+hexagon_WFarea_df$Year <- year_seq
+
+# Theil sen analysis
+x=hexagon_WFarea_df$Year
+theilSenProp_WF_df <- data.frame(matrix(NA, nrow = length(hexagon_names), ncol = 3))
+for (i in 1:length(hexagon_names)){
+  y=hexagon_WFarea_df[,i]
+  mumble_model <- mblm(y ~ x)
+  theilSenProp_WF_df[i,1] <- mumble_model$coefficients[1] #intercept
+  theilSenProp_WF_df[i,2] <- mumble_model$coefficients[2] #slope
+  MK <- MannKendall(y)
+  theilSenProp_WF_df[i,3] <- MK$sl #pvalue
+  mumble_model <- NULL
+  MK <- NULL
+  y <- NULL
+}
+theilSenProp_WF_df$ID <- hexagon_names
+colnames(theilSenProp_WF_df)[1:3] <- c('Intercept','Slope','pval')
+# if slope is 0, then have no fires, so make NA
+theilSenProp_WF_df$pval <- ifelse(theilSenProp_WF_df$Slope==0, NA, theilSenProp_WF_df$pval)
+
+# join theil sen data frame to hexagon shapefile for mapping
+theilSenPropWF_shp <- merge(hex_grid, theilSenProp_WF_df, by='ID')
+
+tm_shape(theilSenPropWF_shp)+
+  tm_fill('pval', style='fixed', title='Pval',
+          breaks=c(0,0.001,0.05,0.1,0.25,0.5, Inf), textNA = 'NA', colorNA = 'gray')+
+  tm_borders()
+
+# export to map in ArcGIS
+#writeOGR(theilSenPropWF_shp, dsn='C:/Ian_GIS/FeelTheBurn/hexagons', layer='theilSenPropWF', 
+#         overwrite_layer = T, driver='ESRI Shapefile')
 
 ######### Fire trends in HU4 watersheds across US ###########
 # count number of lakes with fire by hu4 watershed
