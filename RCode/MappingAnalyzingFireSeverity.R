@@ -387,6 +387,17 @@ for (i in 1:length(hexagon_names)){
 }
 hexagon_HS_df$Year <- year_seq
 
+## export shapefile of lakes (points) with 1 or more high-severity fire
+HS_points <- as.data.frame(t(HS_df))
+HS_points$Total <- rowSums(HS_points)
+HS_points$lagoslakeid <- rownames(HS_points)
+HS_points <- subset(HS_points, Total > 0)
+HS_points_shp <- merge(lakes_4ha_pts, HS_points, by.x='lagoslakei', by.y='lagoslakeid', all.x=F)
+#plot(states_shp)
+#plot(HS_points_shp, add=T, col='red', pch=20)
+#writeOGR(HS_points_shp, dsn='C:/Ian_GIS/FeelTheBurn/HS_fire_lakes', layer='HS_fire_lakes', 
+#         overwrite_layer = T, driver='ESRI Shapefile')
+
 ## loop through hexagon names to create data frame with # of lakes with MS fire by hexagon (rows=years)
 hexagon_MS_df <- data.frame(matrix(NA, ncol = length(hexagon_names), nrow = length(year_seq)))
 colnames(hexagon_MS_df) <- hexagon_names
