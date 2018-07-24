@@ -70,16 +70,19 @@ title('MTBS, 1984-2015')
 test2 <- as.data.frame(t(FRG_lake_counts_burned))
 colnames(test2) <- c('FRG1','FRG2','FRG3','FRG4','FRG5')
 test2 <- test2[4,]
+tump <- as.matrix(test2)
+tump <- cbind(c(tump[,1], 0, 0,0,0), c(0, tump[,2],0,0,0), c(0, 0,tump[,3],0,0), c(0, 0,0,tump[,4],0),
+              c(0, 0,0,0,tump[,5])) 
 
-par(mar=c(5,5,5,1))
+#png('C:/Ian_GIS/FeelTheBurn/Paper1/Figures/FRG_PctBurned.png',width = 7.5,height = 4.75,units = 'in',res=300)
+par(mar=c(3,3,3,1)) #bot,left,top,right
 #lty.o <- par("lty") #get rid of default black borders on stacks 
 #par(lty = 0) 
-barplot(as.matrix(test2), col=c('firebrick'), las=2)#, yaxt='n')
-#axis(side=2, at=seq(0,5e6,1e6))
-#legend('topright', legend=c('Burned','All lakes'), pch=c(15,15),
-#       col=c('firebrick','tan'))
+barplot(tump, las=1, ylim=c(0,0.25),
+        col=c('blanchedalmond','lightsalmon','red','tomato4','gold'),
+        names.arg = c('FRG1', 'FRG2','FRG3','FRG4','FRG5'))
 title('Proportion of lakes burned by Fire Regime Group')
-
+#dev.off()
 
 ########################### Characterizing lakes by mean fire return interval ############################
 # similar to previous chunk, based on LANDFIRE fire return interval: https://www.landfire.gov/mfri.php
