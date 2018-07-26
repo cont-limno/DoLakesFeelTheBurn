@@ -25,15 +25,15 @@ setwd("C:/Users/FWL/Documents/DoLakesFeelTheBurn")
 # may not be on EDI by time submit...REVISIT before submitting
 lakes_4ha_pts <- shapefile("C:/Ian_GIS/LAGOS_US_4ha_lakes/LAGOS_US_All_Lakes_4ha_pts/LAGOS_US_All_Lakes_4ha_pts.shp")
 # HUC 4 watersheds
-hu4_shp <- shapefile("C:/Ian_GIS/LAGOS-NE-GISv1.0/HU4/HU4.shp")
+#hu4_shp <- shapefile("C:/Ian_GIS/LAGOS-NE-GISv1.0/HU4/HU4.shp")
 
 # other GIS data
 states_shp <- shapefile(paste0(getwd(),"/GIS/US_states/lower48.shp"))
 states_shp <- spTransform(states_shp, CRSobj = crs(lakes_4ha_pts)) #reproject to LAGOS projection
 
 # Level 3 ecoregions
-ecoregions <- shapefile(paste0(getwd(),"/GIS/level3Ecoregions/us_eco_l3_dissolved.shp")) #(manually dissolved in ArcGIS by US ecoregion name)
-ecoregions <- spTransform(ecoregions, CRSobj = crs(states_shp))
+#ecoregions <- shapefile(paste0(getwd(),"/GIS/level3Ecoregions/us_eco_l3_dissolved.shp")) #(manually dissolved in ArcGIS by US ecoregion name)
+#ecoregions <- spTransform(ecoregions, CRSobj = crs(states_shp))
 
 # read in burned lagoslakeids
 burned_watersheds <- read.csv("ExportedData/Burned1500mBuffs.csv")[,2] #reads 2nd column (lagoslakeid)
@@ -114,180 +114,192 @@ for (i in 1:length(area_burned_list)){
 colnames(WFarea_df) <- burned_watersheds
 rownames(WFarea_df) <- year_seq
 
+# get total area burned at high-severity
+HSarea_df <- data.frame(matrix(NA, ncol = length(csv_list), nrow = length(year_seq)))
+for (i in 1:length(area_burned_list)){
+  fire_hist <- read.csv(csv_list[i])
+  HSarea_df[,i] <- fire_hist$high_severity_pct
+  fire_hist <- NULL
+}
+colnames(HSarea_df) <- burned_watersheds
+rownames(HSarea_df) <- year_seq
+
 ######################## Regional analysis #############################
-# US Level 3 ecoregions
-ecoregion_names <- ecoregions@data$US_L3NAME
-# first need number of lakes per ecoregion
-# subset points that fall in each ecoregion polygon
-# sp::over doesn't retain attribute data from points, so create data frame to join those data back later based on rowid
+# helps to have data frame of lake IDs
 lakes_4ha_pts@data$rowID <- rownames(lakes_4ha_pts@data)
 rowid_lagos_df <- data.frame(rowID=lakes_4ha_pts@data$rowID, lagoslakeid=lakes_4ha_pts$lagoslakei)
-ecoreg_lagoslakeid <- sp::over(lakes_4ha_pts, ecoregions, returnList = F)
-ecoreg_lagoslakeid$joinID <- rownames(ecoreg_lagoslakeid)
-ecoreg_lagoslakeid <- merge(ecoreg_lagoslakeid, rowid_lagos_df, by.x='joinID', by.y='rowID')
-ecoreg_lagoslakeid <- ecoreg_lagoslakeid[,3:4]
-# get rid of factor; would cause problems later
-ecoreg_lagoslakeid$lagoslakeid <- as.numeric(levels(ecoreg_lagoslakeid$lagoslakeid))[ecoreg_lagoslakeid$lagoslakeid] 
 
-# number of burned lakes by ecoregion
-burned_lakes_LS <- subset(burned_lakes, Low > 0)
-burned_lakes_MS <- subset(burned_lakes, Moderate > 0)
-burned_lakes_HS <- subset(burned_lakes, High > 0)
-
-ecoreg_LS <- colSums(gContains(ecoregions, burned_lakes_LS, byid = T))
-setNames(ecoreg_LS, ecoregions@data$US_L3NAME) 
-Ecoreg_counts_LS <- data.frame(LS_Count = ecoreg_LS, L3Ecoreg=ecoregions@data$US_L3NAME)
-
-ecoreg_MS <- colSums(gContains(ecoregions, burned_lakes_MS, byid = T))
-setNames(ecoreg_MS, ecoregions@data$US_L3NAME) 
-Ecoreg_counts_MS <- data.frame(MS_Count = ecoreg_MS, L3Ecoreg=ecoregions@data$US_L3NAME)
-
-ecoreg_HS <- colSums(gContains(ecoregions, burned_lakes_HS, byid = T))
-setNames(ecoreg_HS, ecoregions@data$US_L3NAME) 
-Ecoreg_counts_HS <- data.frame(HS_Count = ecoreg_HS, L3Ecoreg=ecoregions@data$US_L3NAME)
-
-Ecoreg_counts <- data.frame(Ecoregion=Ecoreg_counts_LS$L3Ecoreg, LS_counts=Ecoreg_counts_LS$LS_Count,
-                            MS_counts=Ecoreg_counts_MS$MS_Count, HS_counts=Ecoreg_counts_HS$HS_Count)
-
-####### proportion of lakes burned (by severity class) by ecoregion ###########
-# count number of rows (lagoslakeids, therefore lakes )per unique ecoregion
-lake_countz_ecoreg <- ecoreg_lagoslakeid %>% 
-  group_by(US_L3NAME) %>%
-  tally()
-colnames(lake_countz_ecoreg) <- c("US_L3NAME","nLakes")
-lake_countz_ecoreg <- merge(lake_countz_ecoreg, Ecoreg_counts, by.x='US_L3NAME', by.y='Ecoregion')
-# using total counts of lakes by ecoregion and number of lakes burned by severity class
-# calculate proportion of lakes that experienced each severity class by ecoregion
-lake_countz_ecoreg$PctLakes_LS <- round(lake_countz_ecoreg$LS_counts/lake_countz_ecoreg$nLakes,4)
-lake_countz_ecoreg$PctLakes_MS <- round(lake_countz_ecoreg$MS_counts/lake_countz_ecoreg$nLakes,4)
-lake_countz_ecoreg$PctLakes_HS <- round(lake_countz_ecoreg$HS_counts/lake_countz_ecoreg$nLakes,4)
-
-#merge lake counts and proportions by ecoregion to ecoregion shapefile
-Ecoreg_countz_shp <- merge(ecoregions, lake_countz_ecoreg, by='US_L3NAME')
-tm_shape(Ecoreg_countz_shp)+
-  tm_fill('PctLakes_HS', style='fixed', title='Proportion of Lakes Burned (HS)',
-          breaks=c(0,0.1,0.2,0.3,0.4,0.5, Inf), textNA = 'NA', colorNA = 'gray')+
-  tm_borders()
-
-tm_shape(Ecoreg_countz_shp)+
-  tm_fill('PctLakes_MS', style='fixed', title='Proportion of Lakes Burned (MS)',
-          breaks=c(0,0.1,0.2,0.3,0.4,0.5, Inf), textNA = 'NA', colorNA = 'gray')+
-  tm_borders()
-
-tm_shape(Ecoreg_countz_shp)+
-  tm_fill('PctLakes_LS', style='fixed', title='Proportion of Lakes Burned (LS)',
-          breaks=c(0,0.1,0.2,0.3,0.4,0.5, Inf), textNA = 'NA', colorNA = 'gray')+
-  tm_borders()
-
-##### show trend/lack of in high-severity fire by ecoregion through time #######
-# loop through ecoregion names to create data frame with # of lakes with HS fire by ecoregion (rows=years)
-# uses HS, MS and LS fire histories by lagoslakeid generated above
-ecoregion_names <- unique(ecoreg_lagoslakeid$US_L3NAME)
-ecoregion_names <- ecoregion_names[!is.na(ecoregion_names)]#get rid of NA
-ecoregion_HS_df <- data.frame(matrix(NA, ncol = length(ecoregion_names), nrow = length(year_seq)))
-colnames(ecoregion_HS_df) <- ecoregion_names
-rownames(ecoregion_HS_df) <- year_seq
-for (i in 1:length(ecoregion_names)){
-  ecoreg_test <- subset(ecoreg_lagoslakeid, US_L3NAME == ecoregion_names[i])
-  ecoreg_test_lakes <- unique(ecoreg_test$lagoslakeid)
-  HS_df_test <- as.data.frame(t(HS_df))
-  HS_df_test$lagoslakeid <- rownames(HS_df_test)
-  HS_df_test <- subset(HS_df_test, lagoslakeid %in% ecoreg_test_lakes)
-  # building in conditional statement for instances when no HS fire occurs in given ecoregion
-  if (nrow(HS_df_test) > 0) {
-    ecoreg_HS_total <- colSums(HS_df_test != 0, na.rm=T)[1:length(year_seq)]
-  }
-  else {
-    ecoreg_HS_total <- rep(0, length(year_seq))
-  }
-  ecoregion_HS_df[,i] <- ecoreg_HS_total 
-  ecoreg_test <- NULL
-  HS_df_test <- NULL
-  ecoreg_HS_total <- NULL
-}
-ecoregion_HS_df$Year <- year_seq
-
-## loop through ecoregion names to create data frame with # of lakes with MS fire by ecoregion (rows=years)
-ecoregion_MS_df <- data.frame(matrix(NA, ncol = length(ecoregion_names), nrow = length(year_seq)))
-colnames(ecoregion_MS_df) <- ecoregion_names
-rownames(ecoregion_MS_df) <- year_seq
-for (i in 1:length(ecoregion_names)){
-  ecoreg_test <- subset(ecoreg_lagoslakeid, US_L3NAME == ecoregion_names[i])
-  ecoreg_test_lakes <- unique(ecoreg_test$lagoslakeid)
-  MS_df_test <- as.data.frame(t(MS_df))
-  MS_df_test$lagoslakeid <- rownames(MS_df_test)
-  MS_df_test <- subset(MS_df_test, lagoslakeid %in% ecoreg_test_lakes)
-  # building in conditional statement for instances when no MS fire occurs in given ecoregion
-  if (nrow(MS_df_test) > 0) {
-    ecoreg_MS_total <- colSums(MS_df_test != 0, na.rm=T)[1:length(year_seq)]
-  }
-  else {
-    ecoreg_MS_total <- rep(0, length(year_seq))
-  }
-  ecoregion_MS_df[,i] <- ecoreg_MS_total 
-  ecoreg_test <- NULL
-  MS_df_test <- NULL
-  ecoreg_MS_total <- NULL
-}
-ecoregion_MS_df$Year <- year_seq
-
-## loop through ecoregion names to create data frame with # of lakes with LS fire by ecoregion (rows=years)
-ecoregion_LS_df <- data.frame(matrix(NA, ncol = length(ecoregion_names), nrow = length(year_seq)))
-colnames(ecoregion_LS_df) <- ecoregion_names
-rownames(ecoregion_LS_df) <- year_seq
-for (i in 1:length(ecoregion_names)){
-  ecoreg_test <- subset(ecoreg_lagoslakeid, US_L3NAME == ecoregion_names[i])
-  ecoreg_test_lakes <- unique(ecoreg_test$lagoslakeid)
-  LS_df_test <- as.data.frame(t(LS_df))
-  LS_df_test$lagoslakeid <- rownames(LS_df_test)
-  LS_df_test <- subset(LS_df_test, lagoslakeid %in% ecoreg_test_lakes)
-  # building in conditional statement for instances when no LS fire occurs in given ecoregion
-  if (nrow(LS_df_test) > 0) {
-    ecoreg_LS_total <- colSums(LS_df_test != 0, na.rm=T)[1:length(year_seq)]
-  }
-  else {
-    ecoreg_LS_total <- rep(0, length(year_seq))
-  }
-  ecoregion_LS_df[,i] <- ecoreg_LS_total 
-  ecoreg_test <- NULL
-  LS_df_test <- NULL
-  ecoreg_LS_total <- NULL
-}
-ecoregion_LS_df$Year <- year_seq
-
-#### Same analysis, but on proportion of lakes in each ecoregion by severity group
-PropLakes_HS_df <- data.frame(matrix(NA, nrow = length(year_seq), ncol = length(ecoregion_names)))
-for (i in 1:length(ecoregion_names)){
-  ecoregion_given <- ecoregion_names[i]
-  nLakes <- subset(lake_countz_ecoreg, US_L3NAME == ecoregion_given)[,2]
-  ecoregion_HS_given <- subset(ecoregion_HS_df, select=ecoregion_given)
-  PropLakes <- ecoregion_HS_given[,1]/nLakes
-  PropLakes_HS_df[,i] <- PropLakes
-}
-colnames(PropLakes_HS_df) <- ecoregion_names
-PropLakes_HS_df$Year <- year_seq # create year column
-
-PropLakes_MS_df <- data.frame(matrix(NA, nrow = length(year_seq), ncol = length(ecoregion_names)))
-for (i in 1:length(ecoregion_names)){
-  ecoregion_given <- ecoregion_names[i]
-  nLakes <- subset(lake_countz_ecoreg, US_L3NAME == ecoregion_given)[,2]
-  ecoregion_MS_given <- subset(ecoregion_MS_df, select=ecoregion_given)
-  PropLakes <- ecoregion_MS_given[,1]/nLakes
-  PropLakes_MS_df[,i] <- PropLakes
-}
-colnames(PropLakes_MS_df) <- ecoregion_names
-PropLakes_MS_df$Year <- year_seq # create year column
-
-PropLakes_LS_df <- data.frame(matrix(NA, nrow = length(year_seq), ncol = length(ecoregion_names)))
-for (i in 1:length(ecoregion_names)){
-  ecoregion_given <- ecoregion_names[i]
-  nLakes <- subset(lake_countz_ecoreg, US_L3NAME == ecoregion_given)[,2]
-  ecoregion_LS_given <- subset(ecoregion_LS_df, select=ecoregion_given)
-  PropLakes <- ecoregion_LS_given[,1]/nLakes
-  PropLakes_LS_df[,i] <- PropLakes
-}
-colnames(PropLakes_LS_df) <- ecoregion_names
-PropLakes_LS_df$Year <- year_seq # create year column
+####### US Level 3 ecoregions ###########
+# ecoregion_names <- ecoregions@data$US_L3NAME
+# # first need number of lakes per ecoregion
+# # subset points that fall in each ecoregion polygon
+# # sp::over doesn't retain attribute data from points, so create data frame to join those data back later based on rowid
+# ecoreg_lagoslakeid <- sp::over(lakes_4ha_pts, ecoregions, returnList = F)
+# ecoreg_lagoslakeid$joinID <- rownames(ecoreg_lagoslakeid)
+# ecoreg_lagoslakeid <- merge(ecoreg_lagoslakeid, rowid_lagos_df, by.x='joinID', by.y='rowID')
+# ecoreg_lagoslakeid <- ecoreg_lagoslakeid[,3:4]
+# # get rid of factor; would cause problems later
+# ecoreg_lagoslakeid$lagoslakeid <- as.numeric(levels(ecoreg_lagoslakeid$lagoslakeid))[ecoreg_lagoslakeid$lagoslakeid] 
+# 
+# # number of burned lakes by ecoregion
+# burned_lakes_LS <- subset(burned_lakes, Low > 0)
+# burned_lakes_MS <- subset(burned_lakes, Moderate > 0)
+# burned_lakes_HS <- subset(burned_lakes, High > 0)
+# 
+# ecoreg_LS <- colSums(gContains(ecoregions, burned_lakes_LS, byid = T))
+# setNames(ecoreg_LS, ecoregions@data$US_L3NAME) 
+# Ecoreg_counts_LS <- data.frame(LS_Count = ecoreg_LS, L3Ecoreg=ecoregions@data$US_L3NAME)
+# 
+# ecoreg_MS <- colSums(gContains(ecoregions, burned_lakes_MS, byid = T))
+# setNames(ecoreg_MS, ecoregions@data$US_L3NAME) 
+# Ecoreg_counts_MS <- data.frame(MS_Count = ecoreg_MS, L3Ecoreg=ecoregions@data$US_L3NAME)
+# 
+# ecoreg_HS <- colSums(gContains(ecoregions, burned_lakes_HS, byid = T))
+# setNames(ecoreg_HS, ecoregions@data$US_L3NAME) 
+# Ecoreg_counts_HS <- data.frame(HS_Count = ecoreg_HS, L3Ecoreg=ecoregions@data$US_L3NAME)
+# 
+# Ecoreg_counts <- data.frame(Ecoregion=Ecoreg_counts_LS$L3Ecoreg, LS_counts=Ecoreg_counts_LS$LS_Count,
+#                             MS_counts=Ecoreg_counts_MS$MS_Count, HS_counts=Ecoreg_counts_HS$HS_Count)
+# 
+# ####### proportion of lakes burned (by severity class) by ecoregion ###########
+# # count number of rows (lagoslakeids, therefore lakes )per unique ecoregion
+# lake_countz_ecoreg <- ecoreg_lagoslakeid %>% 
+#   group_by(US_L3NAME) %>%
+#   tally()
+# colnames(lake_countz_ecoreg) <- c("US_L3NAME","nLakes")
+# lake_countz_ecoreg <- merge(lake_countz_ecoreg, Ecoreg_counts, by.x='US_L3NAME', by.y='Ecoregion')
+# # using total counts of lakes by ecoregion and number of lakes burned by severity class
+# # calculate proportion of lakes that experienced each severity class by ecoregion
+# lake_countz_ecoreg$PctLakes_LS <- round(lake_countz_ecoreg$LS_counts/lake_countz_ecoreg$nLakes,4)
+# lake_countz_ecoreg$PctLakes_MS <- round(lake_countz_ecoreg$MS_counts/lake_countz_ecoreg$nLakes,4)
+# lake_countz_ecoreg$PctLakes_HS <- round(lake_countz_ecoreg$HS_counts/lake_countz_ecoreg$nLakes,4)
+# 
+# #merge lake counts and proportions by ecoregion to ecoregion shapefile
+# Ecoreg_countz_shp <- merge(ecoregions, lake_countz_ecoreg, by='US_L3NAME')
+# tm_shape(Ecoreg_countz_shp)+
+#   tm_fill('PctLakes_HS', style='fixed', title='Proportion of Lakes Burned (HS)',
+#           breaks=c(0,0.1,0.2,0.3,0.4,0.5, Inf), textNA = 'NA', colorNA = 'gray')+
+#   tm_borders()
+# 
+# tm_shape(Ecoreg_countz_shp)+
+#   tm_fill('PctLakes_MS', style='fixed', title='Proportion of Lakes Burned (MS)',
+#           breaks=c(0,0.1,0.2,0.3,0.4,0.5, Inf), textNA = 'NA', colorNA = 'gray')+
+#   tm_borders()
+# 
+# tm_shape(Ecoreg_countz_shp)+
+#   tm_fill('PctLakes_LS', style='fixed', title='Proportion of Lakes Burned (LS)',
+#           breaks=c(0,0.1,0.2,0.3,0.4,0.5, Inf), textNA = 'NA', colorNA = 'gray')+
+#   tm_borders()
+# 
+# ##### show trend/lack of in high-severity fire by ecoregion through time #######
+# # loop through ecoregion names to create data frame with # of lakes with HS fire by ecoregion (rows=years)
+# # uses HS, MS and LS fire histories by lagoslakeid generated above
+# ecoregion_names <- unique(ecoreg_lagoslakeid$US_L3NAME)
+# ecoregion_names <- ecoregion_names[!is.na(ecoregion_names)]#get rid of NA
+# ecoregion_HS_df <- data.frame(matrix(NA, ncol = length(ecoregion_names), nrow = length(year_seq)))
+# colnames(ecoregion_HS_df) <- ecoregion_names
+# rownames(ecoregion_HS_df) <- year_seq
+# for (i in 1:length(ecoregion_names)){
+#   ecoreg_test <- subset(ecoreg_lagoslakeid, US_L3NAME == ecoregion_names[i])
+#   ecoreg_test_lakes <- unique(ecoreg_test$lagoslakeid)
+#   HS_df_test <- as.data.frame(t(HS_df))
+#   HS_df_test$lagoslakeid <- rownames(HS_df_test)
+#   HS_df_test <- subset(HS_df_test, lagoslakeid %in% ecoreg_test_lakes)
+#   # building in conditional statement for instances when no HS fire occurs in given ecoregion
+#   if (nrow(HS_df_test) > 0) {
+#     ecoreg_HS_total <- colSums(HS_df_test != 0, na.rm=T)[1:length(year_seq)]
+#   }
+#   else {
+#     ecoreg_HS_total <- rep(0, length(year_seq))
+#   }
+#   ecoregion_HS_df[,i] <- ecoreg_HS_total 
+#   ecoreg_test <- NULL
+#   HS_df_test <- NULL
+#   ecoreg_HS_total <- NULL
+# }
+# ecoregion_HS_df$Year <- year_seq
+# 
+# ## loop through ecoregion names to create data frame with # of lakes with MS fire by ecoregion (rows=years)
+# ecoregion_MS_df <- data.frame(matrix(NA, ncol = length(ecoregion_names), nrow = length(year_seq)))
+# colnames(ecoregion_MS_df) <- ecoregion_names
+# rownames(ecoregion_MS_df) <- year_seq
+# for (i in 1:length(ecoregion_names)){
+#   ecoreg_test <- subset(ecoreg_lagoslakeid, US_L3NAME == ecoregion_names[i])
+#   ecoreg_test_lakes <- unique(ecoreg_test$lagoslakeid)
+#   MS_df_test <- as.data.frame(t(MS_df))
+#   MS_df_test$lagoslakeid <- rownames(MS_df_test)
+#   MS_df_test <- subset(MS_df_test, lagoslakeid %in% ecoreg_test_lakes)
+#   # building in conditional statement for instances when no MS fire occurs in given ecoregion
+#   if (nrow(MS_df_test) > 0) {
+#     ecoreg_MS_total <- colSums(MS_df_test != 0, na.rm=T)[1:length(year_seq)]
+#   }
+#   else {
+#     ecoreg_MS_total <- rep(0, length(year_seq))
+#   }
+#   ecoregion_MS_df[,i] <- ecoreg_MS_total 
+#   ecoreg_test <- NULL
+#   MS_df_test <- NULL
+#   ecoreg_MS_total <- NULL
+# }
+# ecoregion_MS_df$Year <- year_seq
+# 
+# ## loop through ecoregion names to create data frame with # of lakes with LS fire by ecoregion (rows=years)
+# ecoregion_LS_df <- data.frame(matrix(NA, ncol = length(ecoregion_names), nrow = length(year_seq)))
+# colnames(ecoregion_LS_df) <- ecoregion_names
+# rownames(ecoregion_LS_df) <- year_seq
+# for (i in 1:length(ecoregion_names)){
+#   ecoreg_test <- subset(ecoreg_lagoslakeid, US_L3NAME == ecoregion_names[i])
+#   ecoreg_test_lakes <- unique(ecoreg_test$lagoslakeid)
+#   LS_df_test <- as.data.frame(t(LS_df))
+#   LS_df_test$lagoslakeid <- rownames(LS_df_test)
+#   LS_df_test <- subset(LS_df_test, lagoslakeid %in% ecoreg_test_lakes)
+#   # building in conditional statement for instances when no LS fire occurs in given ecoregion
+#   if (nrow(LS_df_test) > 0) {
+#     ecoreg_LS_total <- colSums(LS_df_test != 0, na.rm=T)[1:length(year_seq)]
+#   }
+#   else {
+#     ecoreg_LS_total <- rep(0, length(year_seq))
+#   }
+#   ecoregion_LS_df[,i] <- ecoreg_LS_total 
+#   ecoreg_test <- NULL
+#   LS_df_test <- NULL
+#   ecoreg_LS_total <- NULL
+# }
+# ecoregion_LS_df$Year <- year_seq
+# 
+# #### Same analysis, but on proportion of lakes in each ecoregion by severity group
+# PropLakes_HS_df <- data.frame(matrix(NA, nrow = length(year_seq), ncol = length(ecoregion_names)))
+# for (i in 1:length(ecoregion_names)){
+#   ecoregion_given <- ecoregion_names[i]
+#   nLakes <- subset(lake_countz_ecoreg, US_L3NAME == ecoregion_given)[,2]
+#   ecoregion_HS_given <- subset(ecoregion_HS_df, select=ecoregion_given)
+#   PropLakes <- ecoregion_HS_given[,1]/nLakes
+#   PropLakes_HS_df[,i] <- PropLakes
+# }
+# colnames(PropLakes_HS_df) <- ecoregion_names
+# PropLakes_HS_df$Year <- year_seq # create year column
+# 
+# PropLakes_MS_df <- data.frame(matrix(NA, nrow = length(year_seq), ncol = length(ecoregion_names)))
+# for (i in 1:length(ecoregion_names)){
+#   ecoregion_given <- ecoregion_names[i]
+#   nLakes <- subset(lake_countz_ecoreg, US_L3NAME == ecoregion_given)[,2]
+#   ecoregion_MS_given <- subset(ecoregion_MS_df, select=ecoregion_given)
+#   PropLakes <- ecoregion_MS_given[,1]/nLakes
+#   PropLakes_MS_df[,i] <- PropLakes
+# }
+# colnames(PropLakes_MS_df) <- ecoregion_names
+# PropLakes_MS_df$Year <- year_seq # create year column
+# 
+# PropLakes_LS_df <- data.frame(matrix(NA, nrow = length(year_seq), ncol = length(ecoregion_names)))
+# for (i in 1:length(ecoregion_names)){
+#   ecoregion_given <- ecoregion_names[i]
+#   nLakes <- subset(lake_countz_ecoreg, US_L3NAME == ecoregion_given)[,2]
+#   ecoregion_LS_given <- subset(ecoregion_LS_df, select=ecoregion_given)
+#   PropLakes <- ecoregion_LS_given[,1]/nLakes
+#   PropLakes_LS_df[,i] <- PropLakes
+# }
+# colnames(PropLakes_LS_df) <- ecoregion_names
+# PropLakes_LS_df$Year <- year_seq # create year column
 
 ######### Fire trends in hexagonal regions across US ###########
 # create hexagonal grid for USA
@@ -566,6 +578,61 @@ tm_shape(theilSenPropWF_shp)+
 
 # export to map in ArcGIS
 #writeOGR(theilSenPropWF_shp, dsn='C:/Ian_GIS/FeelTheBurn/hexagons', layer='theilSenPropWF', 
+#         overwrite_layer = T, driver='ESRI Shapefile')
+
+####### Changing area burned at high severity in lake watersheds within hexagons? #########
+hexagon_HSarea_df <- data.frame(matrix(NA, ncol = length(hexagon_names), nrow = length(year_seq)))
+colnames(hexagon_HSarea_df) <- hexagon_names
+rownames(hexagon_HSarea_df) <- year_seq
+for (i in 1:length(hexagon_names)){
+  hex_test <- subset(hex_lagoslakeid, ID == hexagon_names[i])
+  hex_test_lakes <- unique(hex_test$lagoslakeid)
+  HS_df_test <- as.data.frame(t(HSarea_df))
+  HS_df_test$lagoslakeid <- rownames(HS_df_test)
+  HS_df_test <- subset(HS_df_test, lagoslakeid %in% hex_test_lakes)
+  # building in conditional statement for instances when no HS fire occurs in given hexagon
+  if (nrow(HS_df_test) > 0) {
+    hex_HS_total <- colSums(HS_df_test[,1:length(year_seq)], na.rm=T)
+  }
+  else {
+    hex_HS_total <- rep(0, length(year_seq))
+  }
+  hexagon_HSarea_df[,i] <- hex_HS_total 
+  hex_test <- NULL
+  HS_df_test <- NULL
+  hex_HS_total <- NULL
+}
+hexagon_HSarea_df$Year <- year_seq
+
+# Theil sen analysis
+x=hexagon_HSarea_df$Year
+theilSenProp_HS_df <- data.frame(matrix(NA, nrow = length(hexagon_names), ncol = 3))
+for (i in 1:length(hexagon_names)){
+  y=hexagon_HSarea_df[,i]
+  mumble_model <- mblm(y ~ x)
+  theilSenProp_HS_df[i,1] <- mumble_model$coefficients[1] #intercept
+  theilSenProp_HS_df[i,2] <- mumble_model$coefficients[2] #slope
+  MK <- MannKendall(y)
+  theilSenProp_HS_df[i,3] <- MK$sl #pvalue
+  mumble_model <- NULL
+  MK <- NULL
+  y <- NULL
+}
+theilSenProp_HS_df$ID <- hexagon_names
+colnames(theilSenProp_HS_df)[1:3] <- c('Intercept','Slope','pval')
+# if slope is 0, then have no fires, so make NA
+theilSenProp_HS_df$pval <- ifelse(theilSenProp_HS_df$Slope==0, NA, theilSenProp_HS_df$pval)
+
+# join theil sen data frame to hexagon shapefile for mapping
+theilSenPropHS_shp <- merge(hex_grid, theilSenProp_HS_df, by='ID')
+
+tm_shape(theilSenPropHS_shp)+
+  tm_fill('pval', style='fixed', title='Pval',
+          breaks=c(0,0.001,0.05,0.1,0.25,0.5, Inf), textNA = 'NA', colorNA = 'gray')+
+  tm_borders()
+
+# export to map in ArcGIS
+#writeOGR(theilSenPropHS_shp, dsn='C:/Ian_GIS/FeelTheBurn/hexagons', layer='theilSenPropHS_area', 
 #         overwrite_layer = T, driver='ESRI Shapefile')
 
 ######### Fire trends in HU4 watersheds across US ###########
