@@ -35,6 +35,10 @@ states_shp <- spTransform(states_shp, CRSobj = crs(lakes_4ha_pts)) #reproject to
 #ecoregions <- shapefile(paste0(getwd(),"/GIS/level3Ecoregions/us_eco_l3_dissolved.shp")) #(manually dissolved in ArcGIS by US ecoregion name)
 #ecoregions <- spTransform(ecoregions, CRSobj = crs(states_shp))
 
+# Ecoregions from National Aquatic Resource Survey (NARS)
+NARS_ecoregions <- shapefile(paste0(getwd(),"/GIS/NARS_ecoregions/NARS_ecoregions.shp"))
+NARS_ecoregions <- spTransform(NARS_ecoregions, CRSobj = crs(states_shp))
+
 # read in burned lagoslakeids
 burned_watersheds <- read.csv("ExportedData/Burned1500mBuffs.csv")[,2] #reads 2nd column (lagoslakeid)
 csv_list <- list.files("ExportedData/lake_fire_history_severity/buffer1500m", pattern='.csv', full.names=T)
@@ -128,6 +132,44 @@ rownames(HSarea_df) <- year_seq
 # helps to have data frame of lake IDs
 lakes_4ha_pts@data$rowID <- rownames(lakes_4ha_pts@data)
 rowid_lagos_df <- data.frame(rowID=lakes_4ha_pts@data$rowID, lagoslakeid=lakes_4ha_pts$lagoslakei)
+
+######### NARS ecoregions #########
+NARS_ecoregion_names <- NARS_ecoregions@data$WSA9_NAME
+# first need number of lakes per ecoregion
+# subset points that fall in each ecoregion polygon
+# sp::over doesn't retain attribute data from points, so create data frame to join those data back later based on rowid
+NARS_ecoregion_lagoslakeid <- sp::over(lakes_4ha_pts, NARS_ecoregions, returnList = F)
+NARS_ecoregion_lagoslakeid$joinID <- rownames(NARS_ecoregion_lagoslakeid)
+NARS_ecoregion_lagoslakeid <- merge(NARS_ecoregion_lagoslakeid, rowid_lagos_df, by.x='joinID', by.y='rowID')
+#NARS_ecoregion_lagoslakeid <- NARS_ecoregion_lagoslakeid[,3:4]
+# get rid of factor; would cause problems later
+NARS_ecoregion_lagoslakeid$lagoslakeid <- as.numeric(levels(NARS_ecoregion_lagoslakeid$lagoslakeid))[NARS_ecoregion_lagoslakeid$lagoslakeid]
+
+# number of burned lakes by ecoregion
+NARS_ecoregion_burned <- colSums(gContains(NARS_ecoregions, burned_lakes, byid = T))
+setNames(NARS_ecoregion_burned, NARS_ecoregions@data$WSA9_NAME)
+
+NARS_ecoregion_burned_DF <- data.frame(BurnedLakes = NARS_ecoregion_burned, NARS_ecoregion=NARS_ecoregions@data$WSA9_NAME)
+
+# proportion of burned lakes by ecoregion (out of total lakes in each ecoregion)
+# count number of rows (lagoslakeids, therefore lakes )per unique ecoregion
+lake_countz_NARS_ecoregion <- NARS_ecoregion_lagoslakeid %>%
+  group_by(WSA9_NAME) %>%
+  tally()
+colnames(lake_countz_NARS_ecoregion) <- c("NARS_ecoregion","nLakes")
+lake_countz_NARS_ecoregion <- merge(lake_countz_NARS_ecoregion, NARS_ecoregion_burned_DF, by="NARS_ecoregion", all.x=F)
+lake_countz_NARS_ecoregion$PropBurned <- lake_countz_NARS_ecoregion$BurnedLakes/lake_countz_NARS_ecoregion$nLakes
+#write.csv(lake_countz_NARS_ecoregion, "ExportedData/NARS_ecoregions_burned_lakes.csv")
+
+lake_countz_NARS_ecoregion_shp <- merge(NARS_ecoregions, lake_countz_NARS_ecoregion, by.x='WSA9_NAME', by.y='NARS_ecoregion')
+tm_shape(lake_countz_NARS_ecoregion_shp)+
+  tm_fill('PropBurned', style='fixed', title='Proportion of Lakes Burned',
+          breaks=c(0,0.01,0.03,0.05,0.08,0.1, Inf), textNA = 'NA', colorNA = 'gray')+
+  tm_borders()
+
+#writeOGR(lake_countz_NARS_ecoregion_shp, dsn='GIS/NARS_ecoregions/NARS_ecoregions_propBurned', layer='NARS_ecoregions_propBurned', 
+#         overwrite_layer = T, driver='ESRI Shapefile')
+
 
 ####### US Level 3 ecoregions ###########
 # ecoregion_names <- ecoregions@data$US_L3NAME
