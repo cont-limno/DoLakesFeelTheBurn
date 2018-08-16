@@ -1,6 +1,6 @@
 ######################## Fire in lake watersheds of USA ########################################
 # Date: 1-17-18
-# updated: 7-11-18
+# updated: 8-16-18
 # Author: Ian McCullough, immccull@gmail.com
 ################################################################################################
 
@@ -51,8 +51,14 @@ MTBS_polygon_Rx <- subset(MTBS_polygon, FireType =='Prescribed Fire')
 # identify watersheds with fire some time between first and last year
 # will take many hours
 #burned_watersheds <- zones_that_burned_all(burn_polygons = MTBS_polygon, zone_shp=Buff1500m_all)
-burned_watersheds_WF <- zones_that_burned_all(burn_polygons = MTBS_polygon_WF, zone_shp=Buff1500m_all)
-burned_watersheds_Rx <- zones_that_burned_all(burn_polygons = MTBS_polygon_Rx, zone_shp=Buff1500m_all)
+# burned_watersheds_WF <- zones_that_burned_all(burn_polygons = MTBS_polygon_WF, zone_shp=Buff1500m_all)
+# burned_watersheds_Rx <- zones_that_burned_all(burn_polygons = MTBS_polygon_Rx, zone_shp=Buff1500m_all)
+# 
+# burned_watersheds_WF_exp <- burned_watersheds_WF$lagoslakei
+# burned_watersheds_Rx_exp <- burned_watersheds_Rx$lagoslakei
+# write.csv(burned_watersheds_WF_exp, "ExportedData/Burned1500mBuffs_WF.csv")
+# write.csv(burned_watersheds_Rx_exp, "ExportedData/Burned1500mBuffs_Rx.csv")
+
 
 # if already run/saved, can read in burned lagoslakeids
 burned_watersheds <- read.csv("ExportedData/Burned1500mBuffs.csv")[,2] #reads 2nd column (lagoslakeid)

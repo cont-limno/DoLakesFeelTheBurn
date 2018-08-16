@@ -1,6 +1,6 @@
 ######################## Mapping, analyzing watershed fire severity #######################################
 # Date: 4-11-18
-# updated: 8-15-18
+# updated: 8-16-18
 # Author: Ian McCullough, immccull@gmail.com
 ###########################################################################################################
 
@@ -44,6 +44,10 @@ burned_watersheds <- read.csv("ExportedData/Burned1500mBuffs.csv")[,2] #reads 2n
 csv_list <- list.files("ExportedData/lake_fire_history_severity/buffer1500m", pattern='.csv', full.names=T)
 area_burned_list <- list.files("ExportedData/lake_fire_history/buffer1500m", pattern='.csv', full.names=T)
 
+# burned lagoslakeids for wildfire and prescribed fire
+burned_watersheds_WF <- read.csv("ExportedData/Burned1500mBuffs_WF.csv")[,2] #reads 2nd column (lagoslakeid)
+burned_watersheds_Rx <- read.csv("ExportedData/Burned1500mBuffs_Rx.csv")[,2]
+
 #### define constants ####
 first_year = 1984
 last_year = 2015
@@ -79,6 +83,9 @@ burned_lakes <- merge(lakes_4ha_pts, output_df, by='lagoslakei', all.x=F)
 burned_lakes_LS <- subset(burned_lakes, Low > 0)
 burned_lakes_MS <- subset(burned_lakes, Moderate > 0)
 burned_lakes_HS <- subset(burned_lakes, High > 0)
+
+burned_lakes_WF <- subset(burned_lakes, lagoslakei %in% burned_watersheds_WF)
+burned_lakes_Rx <- subset(burned_lakes, lagoslakei %in% burned_watersheds_Rx)
 
 #### get fire histories by severity class (not specific to regions)
 # get high-severity fire histories
@@ -173,6 +180,52 @@ tm_shape(lake_countz_NARS_ecoregion_shp)+
 #writeOGR(lake_countz_NARS_ecoregion_shp, dsn='GIS/NARS_ecoregions/NARS_ecoregions_propBurned', layer='NARS_ecoregions_propBurned', 
 #         overwrite_layer = T, driver='ESRI Shapefile')
 
+
+######### By US State (lower 48) #########
+states_names <- states_shp@data$NAME
+# first need number of lakes per state
+# subset points that fall in each state polygon
+# sp::over doesn't retain attribute data from points, so create data frame to join those data back later based on rowid
+states_lagoslakeid <- sp::over(lakes_4ha_pts, states_shp, returnList = F)
+states_lagoslakeid$joinID <- rownames(states_lagoslakeid)
+states_lagoslakeid <- merge(states_lagoslakeid, rowid_lagos_df, by.x='joinID', by.y='rowID')
+#states_lagoslakeid <- states_lagoslakeid[,3:4]
+# get rid of factor; would cause problems later
+states_lagoslakeid$lagoslakeid <- as.numeric(levels(states_lagoslakeid$lagoslakeid))[states_lagoslakeid$lagoslakeid]
+
+# number of burned lakes by state
+states_burned <- colSums(gContains(states_shp, burned_lakes, byid = T))
+setNames(states_burned, states_shp@data$NAME)
+
+states_burned_WF <- colSums(gContains(states_shp, burned_lakes_WF, byid = T))
+setNames(states_burned_WF, states_shp@data$NAME)
+
+states_burned_Rx <- colSums(gContains(states_shp, burned_lakes_Rx, byid = T))
+setNames(states_burned_Rx, states_shp@data$NAME)
+
+states_burned_DF <- data.frame(BurnedLakes = states_burned, BurnedLakes_WF = states_burned_WF,
+                               BurnedLakes_Rx = states_burned_Rx, state=states_shp@data$NAME)
+
+# proportion of burned lakes by state (out of total lakes in each state)
+# count number of rows (lagoslakeids, therefore lakes )per unique state
+lake_countz_states <- states_lagoslakeid %>%
+  group_by(NAME) %>%
+  tally()
+colnames(lake_countz_states) <- c("state","nLakes")
+lake_countz_states <- merge(lake_countz_states, states_burned_DF, by="state", all.x=F)
+lake_countz_states$PropBurned <- lake_countz_states$BurnedLakes/lake_countz_states$nLakes
+lake_countz_states$PropBurned_WF <- lake_countz_states$BurnedLakes_WF/lake_countz_states$nLakes
+lake_countz_states$PropBurned_Rx <- lake_countz_states$BurnedLakes_Rx/lake_countz_states$nLakes
+lake_countz_states$OverallRank <- rank(-lake_countz_states$PropBurned)
+lake_countz_states$WildfireRank <- rank(-lake_countz_states$PropBurned_WF)
+lake_countz_states$RxRank <- rank(-lake_countz_states$PropBurned_Rx)
+
+#write.csv(lake_countz_states, "ExportedData/states_burned_lakes.csv")
+
+state_burned_shp <- merge(states_shp, lake_countz_states, by.x='NAME',by.y='state', all.x=F)
+
+#writeOGR(state_burned_shp, dsn='GIS/US_states', layer='state_prop_lakes_burned', 
+#         overwrite_layer = T, driver='ESRI Shapefile')
 
 ####### US Level 3 ecoregions ###########
 # ecoregion_names <- ecoregions@data$US_L3NAME
