@@ -38,16 +38,21 @@ last_year = 2015
 source("RCode/functions/zones_that_burned_given_year_fire_type.R")
 source("RCode/functions/lagoslakeid_fire_history_watershed.R")
 source("Rcode/functions/number_fires_by_lake.R")
+source("Rcode/functions/zones_that_burned_all.R")
 
 ##################################### Main program ########################################
 # need to check for self intersection; GIS functions fail otherwise
 # 1500 m buffer to all lakes
 Buff1500m_all <- gBuffer(lakes_4ha_all, byid=T, width=1500) #slow!!
 MTBS_polygon <- gBuffer(MTBS_polygon, byid=T, width=0) #gIsValid(MTBS_polygon) returned FALSE, so apply 0 m buffer
+MTBS_polygon_WF <- subset(MTBS_polygon, FireType =='Wildfire')
+MTBS_polygon_Rx <- subset(MTBS_polygon, FireType =='Prescribed Fire')
 
 # identify watersheds with fire some time between first and last year
 # will take many hours
 #burned_watersheds <- zones_that_burned_all(burn_polygons = MTBS_polygon, zone_shp=Buff1500m_all)
+burned_watersheds_WF <- zones_that_burned_all(burn_polygons = MTBS_polygon_WF, zone_shp=Buff1500m_all)
+burned_watersheds_Rx <- zones_that_burned_all(burn_polygons = MTBS_polygon_Rx, zone_shp=Buff1500m_all)
 
 # if already run/saved, can read in burned lagoslakeids
 burned_watersheds <- read.csv("ExportedData/Burned1500mBuffs.csv")[,2] #reads 2nd column (lagoslakeid)
