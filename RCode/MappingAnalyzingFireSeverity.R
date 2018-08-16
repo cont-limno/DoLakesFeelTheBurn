@@ -76,6 +76,9 @@ rownames(output_df) <- temp_lagoslakeids #numeric string of burned lagoslakeids
 # merge to lake points for mapping/subsetting later
 output_df$lagoslakei <- rownames(output_df)
 burned_lakes <- merge(lakes_4ha_pts, output_df, by='lagoslakei', all.x=F)
+burned_lakes_LS <- subset(burned_lakes, Low > 0)
+burned_lakes_MS <- subset(burned_lakes, Moderate > 0)
+burned_lakes_HS <- subset(burned_lakes, High > 0)
 
 #### get fire histories by severity class (not specific to regions)
 # get high-severity fire histories
