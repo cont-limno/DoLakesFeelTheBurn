@@ -1,6 +1,6 @@
 ######################## Mapping, analyzing watershed fire severity #######################################
 # Date: 4-11-18
-# updated: 7-23-18
+# updated: 8-15-18
 # Author: Ian McCullough, immccull@gmail.com
 ###########################################################################################################
 
@@ -115,7 +115,7 @@ rownames(LS_df) <- year_seq
 WFarea_df <- data.frame(matrix(NA, ncol = length(csv_list), nrow = length(year_seq)))
 for (i in 1:length(area_burned_list)){
   fire_hist <- read.csv(area_burned_list[i])
-  WFarea_df[,i] <- fire_hist$wildfire_pct
+  WFarea_df[,i] <- fire_hist$wildfire_ha #not pct
   fire_hist <- NULL
 }
 colnames(WFarea_df) <- burned_watersheds
@@ -570,7 +570,7 @@ tm_shape(theilSenProp_shp)+
 #         overwrite_layer = T, driver='ESRI Shapefile')
 
 
-###### Changing wildfire % burned in lake watersheds? (by hexagon) #######
+###### Changing wildfire area burned in lake watersheds? (by hexagon) #######
 hexagon_WFarea_df <- data.frame(matrix(NA, ncol = length(hexagon_names), nrow = length(year_seq)))
 colnames(hexagon_WFarea_df) <- hexagon_names
 rownames(hexagon_WFarea_df) <- year_seq
@@ -622,7 +622,7 @@ tm_shape(theilSenPropWF_shp)+
   tm_borders()
 
 # export to map in ArcGIS
-#writeOGR(theilSenPropWF_shp, dsn='C:/Ian_GIS/FeelTheBurn/hexagons', layer='theilSenPropWF', 
+#writeOGR(theilSenPropWF_shp, dsn='C:/Ian_GIS/FeelTheBurn/hexagons', layer='theilSenPropWF_ha', 
 #         overwrite_layer = T, driver='ESRI Shapefile')
 
 ####### Changing area burned at high severity in lake watersheds within hexagons? #########
