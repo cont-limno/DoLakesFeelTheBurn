@@ -1,6 +1,6 @@
 ######################## cumulative watershed burn severity ###############################################
 # Date: 4-11-18
-# updated: 7-24-18
+# updated: 8-20-18
 # Author: Ian McCullough, immccull@gmail.com
 ###########################################################################################################
 
@@ -67,3 +67,9 @@ ggplot(fire_melts_data, aes(x=PropBurned, fill = SeverityClass)) + geom_histogra
   scale_fill_manual(values=c('gray','gold','firebrick4'), labels=c('Low','Moderate','High'), name='Severity Class')
 #dev.off()
 
+# stats on lakes that burned 100% of more
+fully_burned <- subset(fire_melts_data, PropBurned >= 1)
+fully_burned <- subset(fully_burned, lagoslakeid %in% unique(fully_burned$lagoslakeid))
+fully_burned_HS <- subset(fully_burned, SeverityClass == 'cumul_HS_pct')
+fully_burned_MS <- subset(fully_burned, SeverityClass == 'cumul_MS_pct')
+fully_burned_LS <- subset(fully_burned, SeverityClass == 'cumul_LS_pct')
