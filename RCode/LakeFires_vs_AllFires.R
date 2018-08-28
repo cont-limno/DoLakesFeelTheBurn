@@ -10,6 +10,8 @@ library(raster)
 library(rgeos)
 
 #### input data ####
+setwd("C:/Users/FWL/Documents/DoLakesFeelTheBurn")
+
 # All LAGOS GIS data in same coordinate system
 states_shp <- shapefile("C:/Ian_GIS/cb_2016_us_state_500k/lower48.shp")
 states_shp <- spTransform(states_shp, CRSobj = "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0")
@@ -25,14 +27,11 @@ MTBS_polygon <- spTransform(MTBS_polygon, CRSobj = crs(states_shp))
 first_year = 1984
 last_year = 2015
 
-#### load functions ####
-source("C:/R_code/FeelTheBurn/functions/number_fires_by_lake.R")
-source("C:/R_code/FeelTheBurn/functions/zones_that_burned_given_year.R")
-
 ############################### Main program ######################################
 # list of burned watersheds by lagoslakeid
 # if already run/saved, can read in burned lagoslakeids
-burned_watersheds <- read.csv("C:/Ian_GIS/FeelTheBurn/Burned1500mBuffs.csv")[,2] #reads 2nd column (lagoslakeid)
+#burned_watersheds <- read.csv("ExportedData/Burned1500mBuffs.csv")[,2] #reads 2nd column (lagoslakeid) (All fire types)
+burned_watersheds <- read.csv("ExportedData/Burned1500mBuffs_WF.csv")[,2] #wildfire only
 year_seq <- seq(first_year, last_year, 1)
 Buff1500m_all <- gBuffer(lakes_4ha_all, byid=T, width=1500)
 BurnedBuff1500m <- subset(Buff1500m_all, lagoslakei %in% burned_watersheds)
