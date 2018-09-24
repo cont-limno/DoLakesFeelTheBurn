@@ -1,0 +1,66 @@
+buffer1500m_burn_severity_lagoslakeid.csv
+Location: DoLakesFeelTheBurn/ExportedData/lake_fire_history_severity
+lagoslakeid refers to unique lake identification number in LAGOS-US (https://lagoslakes.org/)
+Refer to Monitoring Trends in Burn Severity (https://www.mtbs.gov/) for detailed descriptions of burn severity classes and mapping methods.
+Low-severity: < 20% vegetation morality
+Moderate-severity: 20-70% vegetation mortality
+High-severity: > 70% vegetation mortality
+
+Columns
+Year: year of record
+unburned_low_ha: unburned to low severity burn area, hectares within 1500 m buffer zone
+unburned_low_pct: unburned to low severity burn, percent of 1500 m buffer zone
+low_severity_ha: low-severity burn area, hectares within 1500 m buffer zone
+low_severity_pct: low-severity burn, percent of 1500 m buffer zone
+moderate_severity_ha: moderate-severity burn area, hectares within 1500 m buffer zone
+moderate_severity_pct: moderate-severity burn, percent of 1500 m buffer zone
+high_severity_ha: high-severity burn area, hectares within 1500 m buffer zone
+high_severity_pct: high-severity burn area, percent of 1500 m buffer zone
+increased_greenness_ha: increased_greenness, hectares within 1500 m buffer zone
+increased_greenness_pct: increased_greeness, percent of 1500 m buffer zone
+Total_ha: total low-, moderate- and high-severity burn, hectares within 1500 m buffer zone
+Total_pct: total low-, moderate- and high-severity burn, percent of 1500 m buffer zone
+
+buffer1500m_fire_lagoslakeid.csv
+Location: DoLakesFeelTheBurn/ExportedData/buffer1500m
+lagoslakeid refers to unique lake identification number in LAGOS-US (https://lagoslakes.org/)
+Refer to Monitoring Trends in Burn Severity (https://www.mtbs.gov/) for detailed descriptions of fire types and mapping methods.
+
+Columns
+Year: year of record
+ZoneTotalBurned_ha: total area burned across all fire types, hectares within 1500 m buffer zone
+ZoneTotalBurned_pct: across all fire types, percent burned within 1500 m buffer zone
+ZoneTotalBurned_ha_cum: total cumulative area burned from 1984 to year of record across all fire types, hectares within 1500 m buffer zone
+ZoneTotalBurned_pct_cum: total cumulative percent burned from 1984 to year of record across all fires types within 1500 m buffer zone
+WholeFire_ha: area burned from fire event including outside 1500 m buffer zone, hectares
+nTotalFires: number of fire events across all fire types in year of record within 1500 m buffer zone
+wildfire_ha: wildfire area burned, hectares within 1500 m buffer zone
+wildfire_pct: wildfire burn, percent burned within 1500 m buffer zone
+wildfire_ha_cum: cumulative wildfire area burned from 1984 to year of record, hectares within 1500 m buffer zone
+wildfire_pct_cum: cumulative wildfire percent burned from 1984 to year of record within 1500 m buffer zone
+wildfire_IgDate: ignition date of wildfire event in year of record within 1500 m buffer zone. If multiple wildfire events occurred in the same year, the date of the first ignition is reported.
+Wholewildfire_ha: wildfire area burned from fire event including outside 1500 m buffer zone, hectares
+nWildfires: number of wildfire events in year of record within 1500 m buffer zone
+Rxfire_ha: prescribed area burned, hectares within 1500 m buffer zone
+Rxfire_pct: prescribed burn, percent burned within 1500 m buffer zone
+Rxfire_ha_cum: cumulative prescribed area burned from 1984 to year of record, hectares within 1500 m buffer zone
+Rxfire_pct_cum: cumulative prescribed percent burned from 1984 to year of record within 1500 m buffer zone
+RxFire_IgDate: first ignition date of wildfire event in year of record within 1500 m buffer zone. If multiple prescribed fire events occurred in the same year, the date of the first ignition is reported.
+WholeRxfire_ha: prescribed area burned from fire event including outside 1500 m buffer zone, hectares
+nRxfires: number of prescribed fire events in year of record within 1500 m buffer zone
+WLFU_ha: wildland fire use area burned, hectares within 1500 m buffer zone
+WLFU_pct: wildland fire use, percent burned within 1500 m buffer zone
+WLF_ha_cum: cumulative wildland fire use area burned from 1984 to year of record, hectares within 1500 m buffer zone
+WLFU_pct_cum: cumulative wildland fire use percent burned from 1984 to year of record within 1500 m buffer zone
+WLFU_IgDate: first ignition date of wildland fire use event in year of record within 1500 m buffer zone. If multiple wildland fire use events occurred in the same year, the date of the first ignition is reported.
+WholeWLFU_ha: wildland fire use area burned from fire event including outside 1500 m buffer zone, hectares
+nWLFUfires: number of wildland fire use events in year of record within 1500 m buffer zone
+unknown_fire_ha: unknown fire type area burned, hectares within 1500 m buffer zone
+unknown_fire_pct: unknown fire type, percent burned within 1500 m buffer zone
+unknown_fire_ha_cum: cumulative unknown fire type burned from 1984 to year of record, hectares within 1500 m buffer zone
+unknown_fire_pct_cum: cumulative unknown fire type percent burned from 1984 to year of record within 1500 m buffer zone
+unknown_fire_IgDate: first ignition date of unknown fire type event in year of record within 1500 m buffer zone. If multiple unknown fire type events occurred in the same year, the date of the first ignition is reported.
+Wholeunknown_fire_ha: unknown fire type area burned from fire event including outside 1500 m buffer zone, hectares
+nUnknownfires: number of unknown fire type events in year of record within 1500 m buffer zone
+
+
