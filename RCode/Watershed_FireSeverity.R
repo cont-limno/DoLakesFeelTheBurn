@@ -78,4 +78,3 @@ for (j in 1:length(burned_watersheds)){
   write.csv(output_df, paste0("ExporteData/lake_fire_history_severity/buffer1500m/buffer1500m_burn_severity_",burned_watersheds[j],".csv"))  
   output_df <- NULL
 }
-
