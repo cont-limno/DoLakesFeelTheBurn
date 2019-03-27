@@ -43,6 +43,7 @@ iws_ha <- data.frame(lagoslakeid=dt$iws$lagoslakeid, iws_ha=dt$iws$iws_ha, lakea
 buff_iws_df <- merge(buff_df, iws_ha, all.x=F, by='lagoslakeid')
 
 cor(buff_iws_df[,2:4], method='pearson')
+summary(buff_iws_df[,2:4])
 
 #jpeg('C:/Ian_GIS/FeelTheBurn/Paper1/Figures/buff_iws_lake_area.jpeg',width = 6,height = 4,units = 'in',res=300) 
   par(mfrow=c(1,2))
@@ -61,3 +62,11 @@ cor(buff_iws_df[,2:4], method='pearson')
   legend('topleft', paste0("r = ", cor_plot2), bty='n')
 #dev.off()
 
+# Frequency distributions
+hist(buff_iws_df$buff_ha, breaks=seq(0,250000,100), xlim=c(0,10000), main='1500m buffer areas', xlab='Hectares',
+     ylim=c(0,20000))
+hist(buff_iws_df$iws_ha, main='watershed areas', xlim=c(0,10000), breaks=seq(0,3300000,100), xlab='Hectares',
+     ylim=c(0,20000))
+
+
+  

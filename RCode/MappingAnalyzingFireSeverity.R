@@ -1,6 +1,6 @@
 ######################## Mapping, analyzing watershed fire severity #######################################
 # Date: 4-11-18
-# updated: 8-16-18
+# updated: 3-27-19
 # Author: Ian McCullough, immccull@gmail.com
 ###########################################################################################################
 
@@ -28,7 +28,7 @@ lakes_4ha_pts <- shapefile("C:/Ian_GIS/LAGOS_US_4ha_lakes/LAGOS_US_All_Lakes_4ha
 #hu4_shp <- shapefile("C:/Ian_GIS/LAGOS-NE-GISv1.0/HU4/HU4.shp")
 
 # other GIS data
-states_shp <- shapefile(paste0(getwd(),"/GIS/US_states/lower48.shp"))
+states_shp <- shapefile("GIS/US_states/lower48.shp")
 states_shp <- spTransform(states_shp, CRSobj = crs(lakes_4ha_pts)) #reproject to LAGOS projection
 
 # Level 3 ecoregions
@@ -36,8 +36,12 @@ states_shp <- spTransform(states_shp, CRSobj = crs(lakes_4ha_pts)) #reproject to
 #ecoregions <- spTransform(ecoregions, CRSobj = crs(states_shp))
 
 # Ecoregions from National Aquatic Resource Survey (NARS)
-NARS_ecoregions <- shapefile(paste0(getwd(),"/GIS/NARS_ecoregions/NARS_ecoregions.shp"))
+NARS_ecoregions <- shapefile("GIS/NARS_ecoregions/NARS_ecoregions.shp")
 NARS_ecoregions <- spTransform(NARS_ecoregions, CRSobj = crs(states_shp))
+
+# Bailey's ecoregions
+baileys <- shapefile("GIS/baileys_ecoregions/eco_us_province_dissolved.shp")
+baileys <- spTransform(baileys, CRSobj = crs(states_shp))
 
 # read in burned lagoslakeids
 burned_watersheds <- read.csv("ExportedData/Burned1500mBuffs.csv")[,2] #reads 2nd column (lagoslakeid)
@@ -159,7 +163,14 @@ NARS_ecoregion_lagoslakeid$lagoslakeid <- as.numeric(levels(NARS_ecoregion_lagos
 NARS_ecoregion_burned <- colSums(gContains(NARS_ecoregions, burned_lakes, byid = T))
 setNames(NARS_ecoregion_burned, NARS_ecoregions@data$WSA9_NAME)
 
-NARS_ecoregion_burned_DF <- data.frame(BurnedLakes = NARS_ecoregion_burned, NARS_ecoregion=NARS_ecoregions@data$WSA9_NAME)
+NARS_ecoregion_burned_WF <- colSums(gContains(NARS_ecoregions, burned_lakes_WF, byid = T))
+setNames(NARS_ecoregion_burned_WF, NARS_ecoregions@data$WSA9_NAME)
+
+NARS_ecoregion_burned_Rx <- colSums(gContains(NARS_ecoregions, burned_lakes_Rx, byid = T))
+setNames(NARS_ecoregion_burned_Rx, NARS_ecoregions@data$WSA9_NAME)
+
+NARS_ecoregion_burned_DF <- data.frame(NARS_ecoregion=NARS_ecoregions@data$WSA9_NAME, BurnedLakes = NARS_ecoregion_burned, BurnedLakes_WF=NARS_ecoregion_burned_WF,
+                                       BurnedLakes_Rx=NARS_ecoregion_burned_Rx)
 
 # proportion of burned lakes by ecoregion (out of total lakes in each ecoregion)
 # count number of rows (lagoslakeids, therefore lakes )per unique ecoregion
@@ -169,6 +180,8 @@ lake_countz_NARS_ecoregion <- NARS_ecoregion_lagoslakeid %>%
 colnames(lake_countz_NARS_ecoregion) <- c("NARS_ecoregion","nLakes")
 lake_countz_NARS_ecoregion <- merge(lake_countz_NARS_ecoregion, NARS_ecoregion_burned_DF, by="NARS_ecoregion", all.x=F)
 lake_countz_NARS_ecoregion$PropBurned <- lake_countz_NARS_ecoregion$BurnedLakes/lake_countz_NARS_ecoregion$nLakes
+lake_countz_NARS_ecoregion$PropBurned_WF <- lake_countz_NARS_ecoregion$BurnedLakes_WF/lake_countz_NARS_ecoregion$nLakes
+lake_countz_NARS_ecoregion$PropBurned_Rx <- lake_countz_NARS_ecoregion$BurnedLakes_Rx/lake_countz_NARS_ecoregion$nLakes
 #write.csv(lake_countz_NARS_ecoregion, "ExportedData/NARS_ecoregions_burned_lakes.csv")
 
 lake_countz_NARS_ecoregion_shp <- merge(NARS_ecoregions, lake_countz_NARS_ecoregion, by.x='WSA9_NAME', by.y='NARS_ecoregion')
@@ -178,6 +191,52 @@ tm_shape(lake_countz_NARS_ecoregion_shp)+
   tm_borders()
 
 #writeOGR(lake_countz_NARS_ecoregion_shp, dsn='GIS/NARS_ecoregions/NARS_ecoregions_propBurned', layer='NARS_ecoregions_propBurned', 
+#         overwrite_layer = T, driver='ESRI Shapefile')
+
+######### Bailey's ecoregions #########
+baileys_names <- baileys@data$PROVINCE
+# first need number of lakes per ecoregion
+# subset points that fall in each ecoregion polygon
+# sp::over doesn't retain attribute data from points, so create data frame to join those data back later based on rowid
+baileys_lagoslakeid <- sp::over(lakes_4ha_pts, baileys, returnList = F)
+baileys_lagoslakeid$joinID <- rownames(baileys_lagoslakeid)
+baileys_lagoslakeid <- merge(baileys_lagoslakeid, rowid_lagos_df, by.x='joinID', by.y='rowID')
+#baileys_lagoslakeid <- baileys_ecoregion_lagoslakeid[,3:4]
+# get rid of factor; would cause problems later
+baileys_lagoslakeid$lagoslakeid <- as.numeric(levels(baileys_lagoslakeid$lagoslakeid))[baileys_lagoslakeid$lagoslakeid]
+
+# number of burned lakes by ecoregion
+baileys_burned <- colSums(gContains(baileys, burned_lakes, byid = T))
+setNames(baileys_burned, baileys@data$PROVINCE)
+
+baileys_burned_WF <- colSums(gContains(baileys, burned_lakes_WF, byid = T))
+setNames(baileys_burned_WF, baileys@data$PROVINCE)
+
+baileys_burned_Rx <- colSums(gContains(baileys, burned_lakes_Rx, byid = T))
+setNames(baileys_burned_Rx, baileys@data$PROVINCE)
+
+baileys_burned_DF <- data.frame(baileys_province=baileys@data$PROVINCE, BurnedLakes = baileys_burned, BurnedLakes_WF=baileys_burned_WF,
+                                BurnedLakes_Rx=baileys_burned_Rx)
+
+# proportion of burned lakes by ecoregion (out of total lakes in each ecoregion)
+# count number of rows (lagoslakeids, therefore lakes )per unique ecoregion
+lake_countz_baileys <- baileys_lagoslakeid %>%
+  group_by(PROVINCE) %>%
+  tally()
+colnames(lake_countz_baileys) <- c("baileys_province","nLakes")
+lake_countz_baileys <- merge(lake_countz_baileys, baileys_burned_DF, by="baileys_province",all.x=F)
+lake_countz_baileys$PropBurned <- lake_countz_baileys$BurnedLakes/lake_countz_baileys$nLakes
+lake_countz_baileys$PropBurned_WF <- lake_countz_baileys$BurnedLakes_WF/lake_countz_baileys$nLakes
+lake_countz_baileys$PropBurned_Rx <- lake_countz_baileys$BurnedLakes_Rx/lake_countz_baileys$nLakes
+#write.csv(lake_countz_baileys, "ExportedData/baileys_provinces_burned_lakes.csv")
+
+lake_countz_baileys_shp <- merge(baileys, lake_countz_baileys, by.x='PROVINCE', by.y='baileys_province')
+tm_shape(lake_countz_baileys_shp)+
+  tm_fill('PropBurned', style='fixed', title='Proportion of Lakes Burned',
+          breaks=c(0,0.05,0.1,0.2,0.4,0.6, Inf), textNA = 'NA', colorNA = 'gray')+
+  tm_borders()
+
+#writeOGR(lake_countz_baileys_shp, dsn='GIS/baileys_ecoregions', layer='baileys_provinces_propBurned', 
 #         overwrite_layer = T, driver='ESRI Shapefile')
 
 
