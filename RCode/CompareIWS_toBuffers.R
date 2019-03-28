@@ -41,9 +41,11 @@ iws_ha <- data.frame(lagoslakeid=dt$iws$lagoslakeid, iws_ha=dt$iws$iws_ha, lakea
 
 # get master data frame for plotting/correlation analysis
 buff_iws_df <- merge(buff_df, iws_ha, all.x=F, by='lagoslakeid')
+buff_iws_df$buff_ha_minuslake <- buff_iws_df$buff_ha - buff_iws_df$lakearea_ha
+buff_iws_df$iws_ha_minuslake <- buff_iws_df$iws_ha - buff_iws_df$lakearea_ha
 
-cor(buff_iws_df[,2:4], method='pearson')
-summary(buff_iws_df[,2:4])
+cor(buff_iws_df[,2:6], method='pearson')
+summary(buff_iws_df[,2:6])
 
 #jpeg('C:/Ian_GIS/FeelTheBurn/Paper1/Figures/buff_iws_lake_area.jpeg',width = 6,height = 4,units = 'in',res=300) 
   par(mfrow=c(1,2))
@@ -62,6 +64,22 @@ summary(buff_iws_df[,2:4])
   legend('topleft', paste0("r = ", cor_plot2), bty='n')
 #dev.off()
 
+## If subtract laek size from buffers and iws
+par(mfrow=c(1,2))
+# buffer size vs. iws size
+plot(buff_iws_df$buff_ha_minuslake ~ buff_iws_df$iws_ha_minuslake, pch=20, xlim=c(0,20000), ylim=c(0,20000),
+      xlab='Watershed area (ha)', ylab='Buffer area (ha)', main='LAGOS NE, 51000 lakes')
+abline(0,1)
+cor_plot3 <- round(cor(buff_iws_df$buff_ha_minuslake, buff_iws_df$iws_ha_minuslake, method='pearson'),2)
+legend('topleft', paste0("r = ", cor_plot3), bty='n')
+  
+# buffer size vs. lake size
+plot(buff_iws_df$buff_ha_minuslake ~ buff_iws_df$lakearea_ha, pch=20, xlim=c(), ylim=c(),
+      xlab='Lake area (ha)', ylab='Buffer area (ha)', main='LAGOS NE, 51000 lakes')
+abline(0,1)
+cor_plot4 <- round(cor(buff_iws_df$buff_ha_minuslake, buff_iws_df$lakearea_ha, method='pearson'),2)
+legend('topleft', paste0("r = ", cor_plot4), bty='n')
+  
 # Frequency distributions
 hist(buff_iws_df$buff_ha, breaks=seq(0,250000,100), xlim=c(0,10000), main='1500m buffer areas', xlab='Hectares',
      ylim=c(0,20000))
