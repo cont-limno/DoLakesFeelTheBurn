@@ -1,0 +1,126 @@
+Overall information
+lagoslakeid refers to unique lake identification number in LAGOS-US (https://lagoslakes.org/)
+Refer to Monitoring Trends in Burn Severity (https://www.mtbs.gov/) for detailed descriptions of burn severity classes and mapping methods.
+Low-severity: < 20% vegetation morality
+Moderate-severity: 20-70% vegetation mortality
+High-severity: > 70% vegetation mortality
+Analysis only includes lakes ? 4 ha
+
+Lake watershed fire histories by burn severity
+buffer1500m_burn_severity_lagoslakeid.csv
+Location: DoLakesFeelTheBurn/ExportedData/lake_fire_history_severity/buffer1500m
+Columns
+Year: year of record
+unburned_low_ha: unburned to low severity burn area, hectares within 1500 m buffer zone
+unburned_low_pct: unburned to low severity burn, proportion of 1500 m buffer zone
+low_severity_ha: low-severity burn area, hectares within 1500 m buffer zone
+low_severity_pct: low-severity burn, proportion of 1500 m buffer zone
+moderate_severity_ha: moderate-severity burn area, hectares within 1500 m buffer zone
+moderate_severity_pct: moderate-severity burn, proportion of 1500 m buffer zone
+high_severity_ha: high-severity burn area, hectares within 1500 m buffer zone
+high_severity_pct: high-severity burn area, proportion of 1500 m buffer zone
+increased_greenness_ha: increased_greenness, hectares within 1500 m buffer zone
+increased_greenness_pct: increased_greeness, proportion of 1500 m buffer zone
+Total_ha: total low-, moderate- and high-severity burn, hectares within 1500 m buffer zone
+Total_pct: total low-, moderate- and high-severity burn, proportion of 1500 m buffer zone
+
+Lake watershed fire histories by fire type
+buffer1500m_fire_lagoslakeid.csv
+Location: DoLakesFeelTheBurn/ExportedData/buffer1500m
+Columns
+Year: year of record
+ZoneTotalBurned_ha: total area burned across all fire types, hectares within 1500 m buffer zone
+ZoneTotalBurned_pct: across all fire types, proportion burned within 1500 m buffer zone
+ZoneTotalBurned_ha_cum: total cumulative area burned from 1984 to year of record across all fire types, hectares within 1500 m buffer zone
+ZoneTotalBurned_pct_cum: total cumulative proportion burned from 1984 to year of record across all fires types within 1500 m buffer zone
+WholeFire_ha: area burned from fire event including outside 1500 m buffer zone, hectares
+nTotalFires: number of fire events across all fire types in year of record within 1500 m buffer zone
+wildfire_ha: wildfire area burned, hectares within 1500 m buffer zone
+wildfire_pct: wildfire burn, proportion burned within 1500 m buffer zone
+wildfire_ha_cum: cumulative wildfire area burned from 1984 to year of record, hectares within 1500 m buffer zone
+wildfire_pct_cum: cumulative wildfire proportion burned from 1984 to year of record within 1500 m buffer zone
+wildfire_IgDate: ignition date of wildfire event in year of record within 1500 m buffer zone. If multiple wildfire events occurred in the same year, the date of the first ignition is reported.
+Wholewildfire_ha: wildfire area burned from fire event including outside 1500 m buffer zone, hectares
+nWildfires: number of wildfire events in year of record within 1500 m buffer zone
+Rxfire_ha: prescribed area burned, hectares within 1500 m buffer zone
+Rxfire_pct: prescribed burn, proportion burned within 1500 m buffer zone
+Rxfire_ha_cum: cumulative prescribed area burned from 1984 to year of record, hectares within 1500 m buffer zone
+Rxfire_pct_cum: cumulative prescribed proportion burned from 1984 to year of record within 1500 m buffer zone
+RxFire_IgDate: first ignition date of wildfire event in year of record within 1500 m buffer zone. If multiple prescribed fire events occurred in the same year, the date of the first ignition is reported.
+WholeRxfire_ha: prescribed area burned from fire event including outside 1500 m buffer zone, hectares
+nRxfires: number of prescribed fire events in year of record within 1500 m buffer zone
+WLFU_ha: wildland fire use area burned, hectares within 1500 m buffer zone
+WLFU_pct: wildland fire use, proportion burned within 1500 m buffer zone
+WLF_ha_cum: cumulative wildland fire use area burned from 1984 to year of record, hectares within 1500 m buffer zone
+WLFU_pct_cum: cumulative wildland fire use proportion burned from 1984 to year of record within 1500 m buffer zone
+WLFU_IgDate: first ignition date of wildland fire use event in year of record within 1500 m buffer zone. If multiple wildland fire use events occurred in the same year, the date of the first ignition is reported.
+WholeWLFU_ha: wildland fire use area burned from fire event including outside 1500 m buffer zone, hectares
+nWLFUfires: number of wildland fire use events in year of record within 1500 m buffer zone
+unknown_fire_ha: unknown fire type area burned, hectares within 1500 m buffer zone
+unknown_fire_pct: unknown fire type, proportion burned within 1500 m buffer zone
+unknown_fire_ha_cum: cumulative unknown fire type burned from 1984 to year of record, hectares within 1500 m buffer zone
+unknown_fire_pct_cum: cumulative unknown fire type proportion burned from 1984 to year of record within 1500 m buffer zone
+unknown_fire_IgDate: first ignition date of unknown fire type event in year of record within 1500 m buffer zone. If multiple unknown fire type events occurred in the same year, the date of the first ignition is reported.
+Wholeunknown_fire_ha: unknown fire type area burned from fire event including outside 1500 m buffer zone, hectares
+nUnknownfires: number of unknown fire type events in year of record within 1500 m buffer zone
+
+Lake watershed fires by Bailey’s provinces
+baileys_provinces_burned_lakes.csv
+Location: DoLakesFeelTheBurn/ExportedData
+Columns
+baileys_province: name of province
+nLakes: number of lakes per province
+BurnedLakes: number of lakes per province with at least one watershed fire from 1984-2015
+BurnedLakes_WF: number of lakes per province with at least one watershed wildfire from 1984-2015
+BurnedLakes_Rx: number of lakes per province with at least one watershed prescribed fire from 1984-2015
+PropBurned: proportion of lakes per province with at least one watershed fire from 1984-2015
+PropBurned_WF: proportion of lakes per province with at least one watershed wildfire from 1984-2015
+PropBurned_Rx: proportion of lakes per province with at least one watershed prescribed fire from 1984-2015
+
+Lake watersheds with fire, any type
+Burned1500mBuffs.csv
+Location: DoLakesFeelTheBurn/ExportedData
+Columns
+x: lagoslakeid (unique lake ID) 
+
+Lake watersheds with prescribed fire
+Burned1500mBuffs_Rx.csv
+Location: DoLakesFeelTheBurn/ExportedData
+Columns
+x: lagoslakeid (unique lake ID) 
+
+Lake watersheds with wildfire
+Burned1500mBuffs_WF.csv
+Location: DoLakesFeelTheBurn/ExportedData
+Columns
+x: lagoslakeid (unique lake ID) 
+
+Total burn severity in lake watersheds by year
+fire_area_severity_year.csv
+Location: DoLakesFeelTheBurn/ExportedData
+Columns: 1984-2015 (years of fire data)
+Rows
+UBL: unburned to low, hectares
+Low: low-severity (< 20% vegetation mortality), hectares
+Moderate: moderate-severity (20-70% vegetation mortality), hectares
+High: high-severity (> 70% vegetation mortality), hectares
+
+Lake watershed fires by US state (lower 48)
+states_burned_lakes.csv
+Location: DoLakesFeelTheBurn/ExportedData
+Columns
+state: state name
+nLakes: number of lakes per state
+BurnedLakes: number of lakes per state with at least one watershed fire from 1984-2015
+BurnedLakes_WF: number of lakes per state with at least one watershed wildfire from 1984-2015
+BurnedLakes_Rx: number of lakes per state with at least one watershed prescribed fire from 1984-2015
+PropBurned: proportion of lakes per state with at least one watershed fire from 1984-2015
+PropBurned_WF: proportion of lakes per state with at least one watershed wildfire from 1984-2015
+PropBurned_Rx: proportion of lakes per state with at least one watershed prescribed fire from 1984-2015
+OverallRank: rank 1-48 by PropBurned
+WildfireRank: rank 1-48 by PropBurned_WF
+RxRank: rank 1-48 by PropBurned_Rx
+
+
+
+
