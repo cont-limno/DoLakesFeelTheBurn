@@ -1,6 +1,6 @@
 ######################## Comparing buffer, watershed and lake size ##############################
 # Date: 2-1-19
-# updated: 3-27-19
+# updated: 4-3-19
 # Author: Ian McCullough, immccull@gmail.com
 #################################################################################################
 
@@ -14,19 +14,9 @@ library(rgeos)
 #### input data ####
 
 # All LAGOS GIS data in same coordinate system
-#states_shp <- shapefile("C:/Ian_GIS/cb_2016_us_state_500k/lower48.shp")
-#lakes_4ha_pts <- shapefile("C:/Ian_GIS/LAGOS_US_4ha_lakes/LAGOS_US_All_Lakes_4ha_pts/LAGOS_US_All_Lakes_4ha_pts.shp")
-lakes_4ha_all <- shapefile("C:/Ian_GIS/LAGOS-NE-GISv1.0/LAGOS_NE_All_Lakes_4ha/LAGOS_NE_All_Lakes_4ha.shp")
+# See: https://lagoslakes.org/products/data-products/
+lakes_4ha_all <- shapefile("C:/Ian_GIS/LAGOS-NE-GISv1.0/LAGOS_NE_All_Lakes_4ha/LAGOS_NE_All_Lakes_4ha.shp") #LAGOS-NE-GIS v1.0,  http://dx.doi.org/10.6073/pasta/fb4f5687339bec467ce0ed1ea0b5f0ca
 lakes_4ha_all_US <- shapefile("C:/Ian_GIS/LAGOS_US_4ha_lakes/LAGOS_US_All_Lakes_4ha_v0.2.shp")
-
-#states_shp <- spTransform(states_shp, CRSobj = crs(lakes_4ha_all))
-
-# read in burned lagoslakeids
-#burned_watersheds <- read.csv("ExportedData/Burned1500mBuffs.csv")[,2] #reads 2nd column (lagoslakeid)
-
-#### define constants ####
-#first_year = 1984 #in MTBS dataset
-#last_year = 2015
 
 ########################## Main program ########################
 #lakes_4ha_sub <- subset(lakes_4ha_all, lagoslakei %in% burned_watersheds)

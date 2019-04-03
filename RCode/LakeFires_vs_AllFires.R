@@ -1,6 +1,6 @@
 ######################## Lake fires vs. all fires ###############################################
 # Date: 4-30-18
-# updated: 7-25-18
+# updated: 4-3-19
 # Author: Ian McCullough, immccull@gmail.com
 ################################################################################################
 
@@ -13,13 +13,14 @@ library(rgeos)
 setwd("C:/Users/FWL/Documents/DoLakesFeelTheBurn")
 
 # All LAGOS GIS data in same coordinate system
-states_shp <- shapefile("C:/Ian_GIS/cb_2016_us_state_500k/lower48.shp")
+states_shp <- shapefile("GIS/US_states/lower48.shp")
 states_shp <- spTransform(states_shp, CRSobj = "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0")
-#lakes_4ha <- shapefile("C:/Ian_GIS/LAGOS-NE-GISv1.0/LAGOS_NE_All_Lakes_4ha/LAGOS_NE_All_Lakes_4ha.shp")
 
+# See: https://lagoslakes.org/products/data-products/
 lakes_4ha_all <- shapefile("C:/Ian_GIS/LAGOS_US_4ha_lakes/LAGOS_US_All_Lakes_4ha_v0.2.shp")
 
 # MTBS polygon data (area burned) (Monitoring Trends in Burn Severity)
+# Source: https://www.mtbs.gov/; downloaded January 2018 (data years: 1984-2015)
 MTBS_polygon <- shapefile("C:/Ian_GIS/MTBS/mtbs_perims_1984_2015_DD_20170815_LOWER48.shp")
 MTBS_polygon <- spTransform(MTBS_polygon, CRSobj = crs(states_shp))
 
@@ -33,7 +34,7 @@ last_year = 2015
 #burned_watersheds <- read.csv("ExportedData/Burned1500mBuffs.csv")[,2] #reads 2nd column (lagoslakeid) (All fire types)
 burned_watersheds <- read.csv("ExportedData/Burned1500mBuffs_WF.csv")[,2] #wildfire only
 year_seq <- seq(first_year, last_year, 1)
-Buff1500m_all <- gBuffer(lakes_4ha_all, byid=T, width=1500)
+Buff1500m_all <- gBuffer(lakes_4ha_all, byid=T, width=1500) #warning: very slow
 BurnedBuff1500m <- subset(Buff1500m_all, lagoslakei %in% burned_watersheds)
 
 # calculate number of fires by year in lake watersheds
