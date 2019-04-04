@@ -5,7 +5,6 @@ McCullough, I. M., Cheruveli, K. S., Lapierre, J., Lottig, N., Moritz, M. A., St
 
 Status: Revision under review at Global Change Biology (Apr 2019)
 
-###################
 This manuscript:
 
 1) documents increasing exposure of lakes to fire in the continental US
@@ -13,9 +12,8 @@ This manuscript:
 3) synthesizes research from aquatic, terrestrial, landscape and fire ecology into a novel conceptual model for effects of fire on physical, chemical and biological properties of lakes
 4) proposes research priorities for future lake-fire research
 
-###################
 This repository:
-###################
+
 ExportedData: contains saved data files and a metadata document for all data files
 
   lake_fire_history: contains lake-specific fire history files (fire type, area burned, ignition dates)
@@ -37,7 +35,7 @@ ExportedData: contains saved data files and a metadata document for all data fil
   Metadata_forExportedData.txt: metadata focument for all data files, without text formatting
 
   states_burned_lakes.csv: lake watershed fires by US state (lower 48; continental US)
-###################
+
 GIS: contains GIS files small enough to be part of this repository, ArcGIS mxd mapping files
 
 baileys_ecoregions:
@@ -55,7 +53,7 @@ US_states:
   
   state_prop_lakes_burned.shp: shapefile of proportion of lakes per state with fire; see states_burned_lakes.csv for column       
   descriptions (but note auto-truncation of column names when exported from R using rgdal:writeOGR)
-###################
+
 RCode: contains scripts and custom functions used for data analysis
   CompareIWS_toBuffers.R: compare watersheds to 1500m buffer areas based on 51000 lakes in LAGOSNE (Soranno et al. 2017). 
   Compare lake area to 1500 m buffer area for all US lakes in analysis (~137000)
