@@ -99,5 +99,4 @@ functions:
   
   zones_that_burned_given_year_fire_type.R: determines how many lakes (by lagoslakeid) that have experienced different fire 
   types (wildfire, prescribed, wildland fire use, unknown)
-################### 
   
