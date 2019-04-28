@@ -3,7 +3,7 @@ Effects of fire on North American lake ecosystems #FireAndFury
 
 McCullough, I. M., Cheruvelil, K. S., Lapierre, J., Lottig, N., Moritz, M. A., Stachelek, J. and P. A. Soranno. Do lakes feel the burn? Ecological consequences of increasing exposure of lakes to fire in the continental US
 
-Status: Revision under review at Global Change Biology (Apr 2019)
+Status: In press at Global Change Biology (Apr 2019)
 
 This manuscript:
 
