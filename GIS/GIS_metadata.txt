@@ -1,0 +1,57 @@
+Lake watershed fires by Bailey’s provinces
+baileys_provinces_propBurned.shp
+Location: DoLakesFeelTheBurn/GIS/baileys_ecoregions
+Projected coordinate system: Albers
+Columns
+FID: auto-assigned ID 
+Shape: polygon 
+PROVINC: name of ecoregion/province
+FID_: empty column
+nLakes: number of lakes >= 4 ha in province
+BrndLks: number of burned lakes in province, any fire type
+BrnL_WF: number of burned lakes in province, wildfire
+BrndL_R: number of burned lakes in province, prescribed fire
+PrpBrnd: proportion of lakes in province burned, any fire type
+PrpB_WF: proportion of lakes in province burned, wildfire
+PrpBr_R: proportion of lakes in province burned, prescribed fire
+
+Bailey’s provinces
+eco_us_province_dissolved.shp
+Location: DoLakesFeelTheBurn/GIS/baileys_ecoregions
+Projected coordinate system: NAD_1983_Lambert_Azimuthal_Equal_Area
+Columns
+FID: auto-assigned ID 
+Shape: polygon 
+FID_: empty column
+PROVINC: name of ecoregion/province
+
+Lake watershed fires by US state
+state_prop_lakes_burned.shp
+Location: DoLakesFeelTheBurn/GIS/US_states
+Projected coordinate system: Albers
+Columns
+FID: auto-assigned ID 
+Shape: polygon 
+NAME: state name
+STUSPS: 2-letter state abbreviation
+nLakes: number of lakes >= 4 ha in state
+BrndLks: number of burned lakes in state, any fire type
+BrnL_WF: number of burned lakes in state, wildfire
+BrndL_R: number of burned lakes in state, prescribed fire
+PrpBrnd: proportion of lakes in state burned, any fire type
+PrpB_WF: proportion of lakes in state burned, wildfire
+PrpBr_R: proportion of lakes in state burned, prescribed fire
+OvrllRn: state rank by PrpBrnd
+WldfrRn: state rank by PrpB_WF
+RxRank: state rank by PrpBr_R
+
+US states
+lower48.shp
+Location: DoLakesFeelTheBurn/GIS/US_states
+Geographic coordinate system: GCS_North_American_1983
+Columns
+FID: auto-assigned ID 
+Shape: polygon 
+STUSPS: 2-letter state abbreviation
+NAME: state name
+
