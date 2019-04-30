@@ -1,6 +1,6 @@
 ######################## LAGOS US watershed fire severity #######################################
 # Date: 4-9-18
-# updated: 4-3-19
+# updated: 4-30-19
 # Author: Ian McCullough, immccull@gmail.com
 #################################################################################################
 
@@ -14,7 +14,8 @@ library(rgeos)
 #### input data ####
 
 # All LAGOS GIS data in same coordinate system
-# See: https://lagoslakes.org/products/data-products/
+# download from repository and unzip
+# See: https://lagoslakes.org/products/data-products/ for updates
 lakes_4ha_all <- shapefile("C:/Ian_GIS/LAGOS_US_4ha_lakes/LAGOS_US_All_Lakes_4ha_v0.2.shp")
 
 # read in burned lagoslakeids

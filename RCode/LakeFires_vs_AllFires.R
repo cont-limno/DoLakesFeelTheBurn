@@ -1,6 +1,6 @@
 ######################## Lake fires vs. all fires ###############################################
 # Date: 4-30-18
-# updated: 4-3-19
+# updated: 4-30-19
 # Author: Ian McCullough, immccull@gmail.com
 ################################################################################################
 
@@ -16,7 +16,8 @@ setwd("C:/Users/FWL/Documents/DoLakesFeelTheBurn")
 states_shp <- shapefile("GIS/US_states/lower48.shp")
 states_shp <- spTransform(states_shp, CRSobj = "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0")
 
-# See: https://lagoslakes.org/products/data-products/
+# See: https://lagoslakes.org/products/data-products/ for updates
+# download from repository and unzip
 lakes_4ha_all <- shapefile("C:/Ian_GIS/LAGOS_US_4ha_lakes/LAGOS_US_All_Lakes_4ha_v0.2.shp")
 
 # MTBS polygon data (area burned) (Monitoring Trends in Burn Severity)

@@ -12,10 +12,11 @@ library(rgeos)
 setwd("C:/Users/FWL/Documents/DoLakesFeelTheBurn")
 
 # All LAGOS GIS data in same coordinate system
-# See: https://lagoslakes.org/products/data-products/
+# download from repository and unzip
+# See: https://lagoslakes.org/products/data-products/ for updates
 lakes_4ha_all <- shapefile("C:/Ian_GIS/LAGOS_US_4ha_lakes/LAGOS_US_All_Lakes_4ha_v0.2.shp")
 
-# MTBS polygon data (Monitoring Trends in Burn Severity) (downloaded Jan 2018: https://www.mtbs.gov/)
+# MTBS polygon data (Monitoring Trends in Burn Severity) (downloaded Jan 2018: https://www.mtbs.gov/; May 2017 data release)
 MTBS_polygon <- shapefile("C:/Ian_GIS/MTBS/mtbs_perims_1984_2015_DD_20170815_LOWER48.shp")
 MTBS_polygon <- spTransform(MTBS_polygon, crs(lakes_4ha_all)) #reproject to be same as LAGOS GIS data
 

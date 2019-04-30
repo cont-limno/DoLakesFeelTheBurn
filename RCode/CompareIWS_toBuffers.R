@@ -17,6 +17,7 @@ library(rgeos)
 # See: https://lagoslakes.org/products/data-products/
 # LAGOS-NE-GIS v1.0,  http://dx.doi.org/10.6073/pasta/fb4f5687339bec467ce0ed1ea0b5f0ca
 lakes_4ha_all <- shapefile("C:/Ian_GIS/LAGOS-NE-GISv1.0/LAGOS_NE_All_Lakes_4ha/LAGOS_NE_All_Lakes_4ha.shp")
+# download from repository and unzip
 lakes_4ha_all_US <- shapefile("C:/Ian_GIS/LAGOS_US_4ha_lakes/LAGOS_US_All_Lakes_4ha_v0.2.shp")
 
 ########################## Main program ########################

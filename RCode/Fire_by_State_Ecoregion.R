@@ -1,6 +1,6 @@
 ############### Mapping, analyzing watershed fire by US state and Bailey's provinces ######################
 # Date: 4-11-18
-# updated: 4-3-19
+# updated: 4-30-19
 # Author: Ian McCullough, immccull@gmail.com
 ###########################################################################################################
 
@@ -15,8 +15,9 @@ library(rgdal)
 #### input data ####
 setwd("C:/Users/FWL/Documents/DoLakesFeelTheBurn")
 # All LAGOS GIS data in same coordinate system
-# See: https://lagoslakes.org/products/data-products/
-lakes_4ha_pts <- shapefile("C:/Ian_GIS/LAGOS_US_4ha_lakes/LAGOS_US_All_Lakes_4ha_pts/LAGOS_US_All_Lakes_4ha_pts.shp")
+# See: https://lagoslakes.org/products/data-products/ for updates
+# this is a point version of the polygon shapefile in the repository (used ArcGIS to convert to points)
+lakes_4ha_pts <- shapefile("GIS/LAGOS_US_All_Lakes_4ha_pts/LAGOS_US_All_Lakes_4ha_v0.2_pts.shp")
 
 # other GIS data
 states_shp <- shapefile("GIS/US_states/lower48.shp")
