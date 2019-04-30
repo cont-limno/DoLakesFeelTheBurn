@@ -14,7 +14,7 @@ This manuscript:
 
 # This repository:
 
-# ExportedData: contains saved data files and a metadata document for all data files
+# ExportedData: contains saved data files
 
   lake_fire_history: contains lake-specific fire history files (fire type, area burned, ignition dates)
 
@@ -30,13 +30,9 @@ This manuscript:
 
   fire_area_severity_year: total burn severity in lake watersheds by year (hectares by burn severity class)
 
-  Metadata_forExportedData.docx: metadata focument for all data files, with text formatting
-
-  Metadata_forExportedData.txt: metadata focument for all data files, without text formatting
-
   states_burned_lakes.csv: lake watershed fires by US state (lower 48; continental US)
 
-# GIS: contains GIS files small enough to be part of this repository, ArcGIS mxd mapping files
+# GIS: contains GIS files small enough to be part of this repository, metadata, ArcGIS mxd mapping files
 
 baileys_ecoregions:
   
@@ -84,7 +80,7 @@ functions:
   
   Buffer_erase_lagoslakeid.R: buffers lakes, erases lake area (serving as lake watersheds)
   
-  lagoslakeid_fire_history_watershed.R: calculates area burned through time in lake watersheds, uses instersection between fire 
+  lagoslakeid_fire_history_watershed.R: calculates area burned through time in lake watersheds, uses intersection between fire 
   and watershed polygons (watershed polygons can be substituted by lake buffer polygons)
   
   number_fires_by_lake.R: counts number of fires by lake (lagoslakeid) based on pre-calculated lake-specific fire histories     
